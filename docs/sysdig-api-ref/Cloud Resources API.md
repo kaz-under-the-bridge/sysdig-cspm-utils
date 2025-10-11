@@ -198,7 +198,7 @@ curl -X GET "https://us2.app.sysdig.com/api/cspm/v1/cloud/resources?controlId=16
 {
   "data": [
     {
-      "name": "AdministratorAccess (ANPAIWMBCKSKIEE64ZLYK)",
+      "name": "AdministratorAccess (ANPAXJ9M2KFPR8TQ3VWHN)",
       "passed": false,
       "hash": "1dab1f244ac14409",
       "type": "IAM Policy",

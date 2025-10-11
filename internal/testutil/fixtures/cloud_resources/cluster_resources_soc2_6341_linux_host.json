@@ -1,7 +1,7 @@
 {
   "data": [
     {
-      "name": "host-6e6da591.demo-k7w9m3x.internal",
+      "name": "host-6e6da591.x7q9-k7w9m3x.internal",
       "type": "Host",
       "passed": false,
       "configError": "",
@@ -29,7 +29,7 @@
       "clusterConfigMapCrn": ""
     },
     {
-      "name": "host-18e67629.demoglass.internal",
+      "name": "host-18e67629.p5xr9tb2w.internal",
       "type": "Host",
       "passed": false,
       "configError": "",
