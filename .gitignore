@@ -26,7 +26,35 @@ go.work.sum
 
 # env file
 .env
+.env.local
+.devcontainer/.env
+
+# Build directory
+bin/
+
+# Task cache
+.task/
 
 # Editor/IDE
 # .idea/
 # .vscode/
+
+task.md
+python-examples
+
+# Data files
+data/
+!data/.gitkeep
+*.db
+*.csv
+
+# Temporary test files
+test_*.db
+v2_*.db
+production_*.db
+test_exploitable_*.db
+
+bin/
+logs/
+
+response_sample
