@@ -95,7 +95,7 @@
     }
   },
   // コンテナ作成後に実行するコマンド
-  "postCreateCommand": "cd /workspace && go mod download && make deps && gh --version && node --version && npm --version && (claude --version || echo 'Claude Code CLI not available') && task --version",
+  "postCreateCommand": "cd /workspace && task deps && gh --version && node --version && npm --version && (claude --version || echo 'Claude Code CLI not available') && task --version",
   // 開始時のコマンド
   //"postStartCommand": "git config --global --add safe.directory /workspace || true",
   // リモートユーザー
