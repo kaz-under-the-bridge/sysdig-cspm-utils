@@ -1,0 +1,62 @@
+{
+  "data": [
+    {
+      "name": "example-bucket-5a406c4b33",
+      "passed": false,
+      "hash": "5b06dc5d709bf9d3",
+      "type": "S3 Bucket",
+      "account": "stg-account-110d39",
+      "location": "ap-northeast-1",
+      "organization": "o-eeba55a016",
+      "acceptance": null,
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759580709436",
+      "labelValues": [],
+      "globalId": ""
+    },
+    {
+      "name": "example-bucket-61fd81d342",
+      "passed": false,
+      "hash": "f440007c196febf6",
+      "type": "S3 Bucket",
+      "account": "stg-account-c8bb7e",
+      "location": "ap-northeast-1",
+      "organization": "o-eeba55a016",
+      "acceptance": null,
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759577104097",
+      "labelValues": [],
+      "globalId": ""
+    },
+    {
+      "name": "example-bucket-16d8fa12c8",
+      "passed": false,
+      "hash": "3ac0efe043e55525",
+      "type": "S3 Bucket",
+      "account": "stg-account-c8bb7e",
+      "location": "ap-northeast-1",
+      "organization": "o-eeba55a016",
+      "acceptance": null,
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759577104097",
+      "labelValues": [],
+      "globalId": ""
+    }
+  ],
+  "totalCount": 256
+}

@@ -1,0 +1,89 @@
+{
+  "data": [
+    {
+      "name": "host-6e6da591.x7q9-k7w9m3x.internal",
+      "type": "Host",
+      "passed": false,
+      "configError": "",
+      "osName": "linux",
+      "osImage": "Amazon Linux 2023.9.20250929",
+      "nodesCount": 0,
+      "clusterName": "N/A",
+      "acceptance": null,
+      "hash": "fe652d5ef96e981c8e514b509f82442c",
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759355449",
+      "distributionVersion": "",
+      "distributionName": "Linux",
+      "clusterConfigName": "",
+      "platformAccountId": "",
+      "cloudResourceId": "",
+      "cloudRegion": "",
+      "agentTags": [],
+      "clusterConfigMapName": "",
+      "clusterConfigMapCrn": ""
+    },
+    {
+      "name": "host-18e67629.p5xr9tb2w.internal",
+      "type": "Host",
+      "passed": false,
+      "configError": "",
+      "osName": "linux",
+      "osImage": "Amazon Linux 2023.9.20250929",
+      "nodesCount": 0,
+      "clusterName": "N/A",
+      "acceptance": null,
+      "hash": "08af041901501d4ac53e171e13c2729e",
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759625210",
+      "distributionVersion": "",
+      "distributionName": "Linux",
+      "clusterConfigName": "",
+      "platformAccountId": "",
+      "cloudResourceId": "",
+      "cloudRegion": "",
+      "agentTags": [],
+      "clusterConfigMapName": "",
+      "clusterConfigMapCrn": ""
+    },
+    {
+      "name": "host-4c607453.k7w9m3x.internal",
+      "type": "Host",
+      "passed": false,
+      "configError": "",
+      "osName": "linux",
+      "osImage": "Amazon Linux 2023.9.20250929",
+      "nodesCount": 0,
+      "clusterName": "N/A",
+      "acceptance": null,
+      "hash": "ce6a91fe092bad95c9799ce94296cfd0",
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759570045",
+      "distributionVersion": "",
+      "distributionName": "Linux",
+      "clusterConfigName": "",
+      "platformAccountId": "",
+      "cloudResourceId": "",
+      "cloudRegion": "",
+      "agentTags": [],
+      "clusterConfigMapName": "",
+      "clusterConfigMapCrn": ""
+    }
+  ],
+  "totalCount": 4
+}
