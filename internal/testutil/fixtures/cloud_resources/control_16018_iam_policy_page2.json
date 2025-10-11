@@ -1,7 +1,7 @@
 {
   "data": [
     {
-      "name": "AdministratorAccess (ANPAI248a912ead811fb05)",
+      "name": "AdministratorAccess (ANPAX7M9K3FPR2TQ8VWHN)",
       "passed": false,
       "hash": "c9e74a49bc02fa2c",
       "type": "IAM Policy",
@@ -20,7 +20,7 @@
       "globalId": ""
     },
     {
-      "name": "AdministratorAccess (ANPAI248a912ead811fb05)",
+      "name": "AdministratorAccess (ANPAX7M9K3FPR2TQ8VWHN)",
       "passed": false,
       "hash": "054c9292c1fa27f0",
       "type": "IAM Policy",
@@ -39,7 +39,7 @@
       "globalId": ""
     },
     {
-      "name": "AdministratorAccess (ANPAI248a912ead811fb05)",
+      "name": "AdministratorAccess (ANPAX7M9K3FPR2TQ8VWHN)",
       "passed": false,
       "hash": "682ba0607c0691d3",
       "type": "IAM Policy",
