@@ -30,10 +30,10 @@ git clone https://github.com/kaz-under-the-bridge/sysdig-cspm-utils.git
 cd sysdig-cspm-utils
 
 # 依存関係をインストール
-make deps
+task deps
 
 # ビルド
-make build
+task build
 ```
 
 ### 環境変数の設定
@@ -111,13 +111,7 @@ logs/
 ### ビルドコマンド
 
 ```bash
-# Makeを使用
-make build        # ビルド
-make test         # テスト実行
-make fmt          # コードフォーマット
-make lint         # リント実行
-
-# Taskを使用（推奨）
+# Taskを使用
 task build        # ビルド
 task test         # テスト実行
 task fmt          # コードフォーマット
