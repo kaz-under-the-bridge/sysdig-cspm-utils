@@ -1,0 +1,4 @@
+github.com/kaz-under-the-bridge/sysdig-vuls-utils v0.0.0-20251002120635-7d8c9fc9ed65 h1:ri8ux9zqoyIL6qhY4CxIdRPRC7Bu0FENTGgEzsnhXsU=
+github.com/kaz-under-the-bridge/sysdig-vuls-utils v0.0.0-20251002120635-7d8c9fc9ed65/go.mod h1:QsQcCkYxfAUUsZG1FRgr5purqri8iL560f6E3Y0iucY=
+github.com/mattn/go-sqlite3 v1.14.32 h1:JD12Ag3oLy1zQA+BNn74xRgaBbdhbNIDYvQUEuuErjs=
+github.com/mattn/go-sqlite3 v1.14.32/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
