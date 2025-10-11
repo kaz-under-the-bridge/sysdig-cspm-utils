@@ -1,0 +1,64 @@
+{
+  "data": [
+    {
+      "name": "k7w9m3x-app-stg (k7w9m3x-app-stg)",
+      "passed": false,
+      "hash": "b76b1747970e2caa",
+      "type": "Project",
+      "account": "k7w9m3x-account-b2721e",
+      "location": "global",
+      "organization": "org-73q8m954",
+      "acceptance": null,
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759574003605",
+      "labelValues": [],
+      "globalId": ""
+    },
+    {
+      "name": "k7w9m3x-app-dev (k7w9m3x-app-dev)",
+      "passed": false,
+      "hash": "7d4fda51fdc8afce",
+      "type": "Project",
+      "account": "k7w9m3x-account-53b6f7",
+      "location": "global",
+      "organization": "org-73q8m954",
+      "acceptance": null,
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759574013996",
+      "labelValues": [
+        "generative-language: enabled"
+      ],
+      "globalId": ""
+    },
+    {
+      "name": "k7w9m3x-app-prd (k7w9m3x-app-prd)",
+      "passed": false,
+      "hash": "7308622afebc1f9d",
+      "type": "Project",
+      "account": "k7w9m3x-account-a104bb",
+      "location": "global",
+      "organization": "org-73q8m954",
+      "acceptance": null,
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759574003605",
+      "labelValues": [],
+      "globalId": ""
+    }
+  ],
+  "totalCount": 5
+}

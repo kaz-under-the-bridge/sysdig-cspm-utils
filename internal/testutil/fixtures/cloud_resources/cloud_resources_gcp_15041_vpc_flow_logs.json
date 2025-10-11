@@ -1,0 +1,100 @@
+{
+  "data": [
+    {
+      "name": "default (1453430160268820034)",
+      "passed": false,
+      "hash": "ff9239042fdc4f3e",
+      "type": "VPC Subnet",
+      "account": "k7w9m3x-account-b2721e",
+      "location": "africa-south1",
+      "organization": "org-73q8m954",
+      "acceptance": null,
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759574003605",
+      "labelValues": [],
+      "globalId": ""
+    },
+    {
+      "name": "default (4291022427471314499)",
+      "passed": false,
+      "hash": "1fe7344852b349f7",
+      "type": "VPC Subnet",
+      "account": "k7w9m3x-account-b2721e",
+      "location": "asia-east1",
+      "organization": "org-73q8m954",
+      "acceptance": null,
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759574003605",
+      "labelValues": [],
+      "globalId": ""
+    },
+    {
+      "name": "default (8842487674354368066)",
+      "passed": false,
+      "hash": "8443143015b0993f",
+      "type": "VPC Subnet",
+      "account": "k7w9m3x-account-b2721e",
+      "location": "asia-east2",
+      "organization": "org-73q8m954",
+      "acceptance": null,
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759574003605",
+      "labelValues": [],
+      "globalId": ""
+    },
+    {
+      "name": "default (2779751666552503875)",
+      "passed": false,
+      "hash": "e0c8310a7516933b",
+      "type": "VPC Subnet",
+      "account": "k7w9m3x-account-b2721e",
+      "location": "asia-northeast1",
+      "organization": "org-73q8m954",
+      "acceptance": null,
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759574003605",
+      "labelValues": [],
+      "globalId": ""
+    },
+    {
+      "name": "default (2353401219540155971)",
+      "passed": false,
+      "hash": "24b8acafe4bff9fa",
+      "type": "VPC Subnet",
+      "account": "k7w9m3x-account-b2721e",
+      "location": "asia-northeast2",
+      "organization": "org-73q8m954",
+      "acceptance": null,
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759574003605",
+      "labelValues": [],
+      "globalId": ""
+    }
+  ],
+  "totalCount": 219
+}

@@ -1,0 +1,146 @@
+{
+  "data": [
+    {
+      "name": "4.12 Ensure changes to network gateways are monitored",
+      "pass": false,
+      "severity": "High",
+      "policyId": "15",
+      "policyName": "CIS Amazon Web Services Foundations Benchmark v3.0.0",
+      "controls": [
+        {
+          "id": "16067",
+          "name": "Monitoring - Defined Filter and Alarm for Network Gateways Changes",
+          "description": "Monitoring changes to network gateways will help ensure that all ingress/egress traffic traverses the VPC border via a controlled path.",
+          "target": "AWS",
+          "type": 9,
+          "pass": false,
+          "severity": "High",
+          "objectsCount": 40,
+          "remediationId": "16067",
+          "lastUpdate": "1759636664",
+          "acceptedCount": 0,
+          "resourceKind": "AWS_ACCOUNT",
+          "isManual": false,
+          "resourceApiEndpoint": "/api/cspm/v1/cloud/resources?controlId=16067&providerType=AWS&resourceKind=AWS_ACCOUNT&filter=policyId=15 and zones.id=100b83d6",
+          "supportedDistributions": [
+            {
+              "name": "aws",
+              "minVersion": 0,
+              "maxVersion": 0
+            }
+          ],
+          "platform": "",
+          "authors": "Sysdig",
+          "passingCount": 0
+        }
+      ],
+      "failedControls": 1,
+      "highSeverityCount": 40,
+      "mediumSeverityCount": 0,
+      "lowSeverityCount": 0,
+      "acceptedCount": 0,
+      "description": "Real-time monitoring of API calls can be achieved by directing CloudTrail Logs to CloudWatch Logs, or an external Security information and event management (SIEM) environment, and establishing corresponding metric filters and alarms. Network gateways are required to send/receive traffic to a destination outside of a VPC. It is recommended that a metric filter and alarm be established for changes to network gateways.",
+      "requirementId": "16050",
+      "zone": {
+        "id": "100b83d6",
+        "name": "Entire Infrastructure"
+      },
+      "passingCount": 0
+    },
+    {
+      "name": "4.13 Ensure route table changes are monitored",
+      "pass": false,
+      "severity": "High",
+      "policyId": "15",
+      "policyName": "CIS Amazon Web Services Foundations Benchmark v3.0.0",
+      "controls": [
+        {
+          "id": "16068",
+          "name": "Monitoring - Defined Filter and Alarm for Route Tables Changes",
+          "description": "Monitoring changes to route tables will help ensure that all VPC traffic flows through an expected path.",
+          "target": "AWS",
+          "type": 9,
+          "pass": false,
+          "severity": "High",
+          "objectsCount": 40,
+          "remediationId": "16068",
+          "lastUpdate": "1759636664",
+          "acceptedCount": 0,
+          "resourceKind": "AWS_ACCOUNT",
+          "isManual": false,
+          "resourceApiEndpoint": "/api/cspm/v1/cloud/resources?controlId=16068&providerType=AWS&resourceKind=AWS_ACCOUNT&filter=policyId=15 and zones.id=100b83d6",
+          "supportedDistributions": [
+            {
+              "name": "aws",
+              "minVersion": 0,
+              "maxVersion": 0
+            }
+          ],
+          "platform": "",
+          "authors": "Sysdig",
+          "passingCount": 0
+        }
+      ],
+      "failedControls": 1,
+      "highSeverityCount": 40,
+      "mediumSeverityCount": 0,
+      "lowSeverityCount": 0,
+      "acceptedCount": 0,
+      "description": "Real-time monitoring of API calls can be achieved by directing CloudTrail Logs to CloudWatch Logs, or an external Security information and event management (SIEM) environment, and establishing corresponding metric filters and alarms. Routing tables are used to route network traffic between subnets and to network gateways. It is recommended that a metric filter and alarm be established for changes to route tables.",
+      "requirementId": "16051",
+      "zone": {
+        "id": "100b83d6",
+        "name": "Entire Infrastructure"
+      },
+      "passingCount": 0
+    },
+    {
+      "name": "4.14 Ensure VPC changes are monitored",
+      "pass": false,
+      "severity": "High",
+      "policyId": "15",
+      "policyName": "CIS Amazon Web Services Foundations Benchmark v3.0.0",
+      "controls": [
+        {
+          "id": "16069",
+          "name": "Monitoring - Defined Filter and Alarm for VPC Changes",
+          "description": "Monitoring changes to VPC will help ensure VPC traffic flow is not getting impacted.",
+          "target": "AWS",
+          "type": 9,
+          "pass": false,
+          "severity": "High",
+          "objectsCount": 40,
+          "remediationId": "16069",
+          "lastUpdate": "1759636664",
+          "acceptedCount": 0,
+          "resourceKind": "AWS_ACCOUNT",
+          "isManual": false,
+          "resourceApiEndpoint": "/api/cspm/v1/cloud/resources?controlId=16069&providerType=AWS&resourceKind=AWS_ACCOUNT&filter=policyId=15 and zones.id=100b83d6",
+          "supportedDistributions": [
+            {
+              "name": "aws",
+              "minVersion": 0,
+              "maxVersion": 0
+            }
+          ],
+          "platform": "",
+          "authors": "Sysdig",
+          "passingCount": 0
+        }
+      ],
+      "failedControls": 1,
+      "highSeverityCount": 40,
+      "mediumSeverityCount": 0,
+      "lowSeverityCount": 0,
+      "acceptedCount": 0,
+      "description": "Real-time monitoring of API calls can be achieved by directing CloudTrail Logs to CloudWatch Logs, or an external Security information and event management (SIEM) environment, and establishing corresponding metric filters and alarms. It is possible to have more than 1 VPC within an account, in addition it is also possible to create a peer connection between 2 VPCs enabling network traffic to route between VPCs. It is recommended that a metric filter and alarm be established for changes made to VPCs.",
+      "requirementId": "16052",
+      "zone": {
+        "id": "100b83d6",
+        "name": "Entire Infrastructure"
+      },
+      "passingCount": 0
+    }
+  ],
+  "totalCount": "40"
+}

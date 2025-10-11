@@ -1,0 +1,62 @@
+{
+  "data": [
+    {
+      "name": "AdministratorAccess (ANPAI248a912ead811fb05)",
+      "passed": false,
+      "hash": "83aa737faecb32a3",
+      "type": "IAM Policy",
+      "account": "stg-account-110d39",
+      "location": "global",
+      "organization": "o-eeba55a016",
+      "acceptance": null,
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759580709402",
+      "labelValues": [],
+      "globalId": ""
+    },
+    {
+      "name": "AdministratorAccess (ANPAI248a912ead811fb05)",
+      "passed": false,
+      "hash": "5bd2e563233b5e60",
+      "type": "IAM Policy",
+      "account": "sales-account-e1b804",
+      "location": "global",
+      "organization": "o-eeba55a016",
+      "acceptance": null,
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759576714025",
+      "labelValues": [],
+      "globalId": ""
+    },
+    {
+      "name": "AdministratorAccess (ANPAI248a912ead811fb05)",
+      "passed": false,
+      "hash": "bd31b5312921d414",
+      "type": "IAM Policy",
+      "account": "prd-account-0e7ed0",
+      "location": "global",
+      "organization": "o-eeba55a016",
+      "acceptance": null,
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759578226109",
+      "labelValues": [],
+      "globalId": ""
+    }
+  ],
+  "totalCount": 1648
+}

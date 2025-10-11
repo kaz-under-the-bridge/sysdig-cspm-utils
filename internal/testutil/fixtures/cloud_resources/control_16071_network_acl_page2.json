@@ -1,0 +1,62 @@
+{
+  "data": [
+    {
+      "name": "acl-77ef997f3618caaf0",
+      "passed": false,
+      "hash": "cec9c7e73fdfa030",
+      "type": "Network ACL",
+      "account": "dev-account-b61446",
+      "location": "ap-northeast-1",
+      "organization": "o-eeba55a016",
+      "acceptance": null,
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759576446461",
+      "labelValues": [],
+      "globalId": ""
+    },
+    {
+      "name": "acl-179e2a6199ffa0243",
+      "passed": false,
+      "hash": "d5edf2af8a240ccc",
+      "type": "Network ACL",
+      "account": "sales-account-e1b804",
+      "location": "ap-northeast-1",
+      "organization": "o-eeba55a016",
+      "acceptance": null,
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759576553212",
+      "labelValues": [],
+      "globalId": ""
+    },
+    {
+      "name": "acl-80f567340830895c9",
+      "passed": false,
+      "hash": "1da9c18a12b65943",
+      "type": "Network ACL",
+      "account": "dev-account-9653ea",
+      "location": "ap-northeast-3",
+      "organization": "o-eeba55a016",
+      "acceptance": null,
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759576791041",
+      "labelValues": [],
+      "globalId": ""
+    }
+  ],
+  "totalCount": 433
+}

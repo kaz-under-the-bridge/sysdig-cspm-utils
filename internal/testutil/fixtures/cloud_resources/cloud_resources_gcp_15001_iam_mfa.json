@@ -1,0 +1,100 @@
+{
+  "data": [
+    {
+      "name": "h***@x9w2m5y.co.jp",
+      "passed": false,
+      "hash": "96d94649448862c",
+      "type": "IAM User",
+      "account": "k7w9m3x-account-b2721e",
+      "location": "global",
+      "organization": "org-73q8m954",
+      "acceptance": null,
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759575010508",
+      "labelValues": [],
+      "globalId": ""
+    },
+    {
+      "name": "h***@x9w2m5y.co.jp",
+      "passed": false,
+      "hash": "62c5ffed8b4af0eb",
+      "type": "IAM User",
+      "account": "k7w9m3x-account-b2721e",
+      "location": "global",
+      "organization": "org-73q8m954",
+      "acceptance": null,
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759575010508",
+      "labelValues": [],
+      "globalId": ""
+    },
+    {
+      "name": "k***@x9w2m5y.co.jp",
+      "passed": false,
+      "hash": "54889248d0be27ff",
+      "type": "IAM User",
+      "account": "k7w9m3x-account-b2721e",
+      "location": "global",
+      "organization": "org-73q8m954",
+      "acceptance": null,
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759575010508",
+      "labelValues": [],
+      "globalId": ""
+    },
+    {
+      "name": "k***@x9w2m5y.co.jp",
+      "passed": false,
+      "hash": "13a8063a6a0f34cb",
+      "type": "IAM User",
+      "account": "k7w9m3x-account-b2721e",
+      "location": "global",
+      "organization": "org-73q8m954",
+      "acceptance": null,
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759575010508",
+      "labelValues": [],
+      "globalId": ""
+    },
+    {
+      "name": "k***@x9w2m5y.co.jp",
+      "passed": false,
+      "hash": "35201a486239a50c",
+      "type": "IAM User",
+      "account": "k7w9m3x-account-b2721e",
+      "location": "global",
+      "organization": "org-73q8m954",
+      "acceptance": null,
+      "zones": [
+        {
+          "id": "100b83d6",
+          "name": "Entire Infrastructure"
+        }
+      ],
+      "lastSeenDate": "1759575010508",
+      "labelValues": [],
+      "globalId": ""
+    }
+  ],
+  "totalCount": 27
+}

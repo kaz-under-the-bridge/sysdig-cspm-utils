@@ -1,0 +1,146 @@
+{
+  "data": [
+    {
+      "name": "3.8 Ensure that VPC Flow Logs is Enabled for Every Subnet in a VPC Network",
+      "pass": false,
+      "severity": "High",
+      "policyId": "14",
+      "policyName": "CIS Google Cloud Platform Foundation Benchmark v2.0.0",
+      "controls": [
+        {
+          "id": "15041",
+          "name": "Networking - Enabled VPC Flow Logs",
+          "description": "VPC networks and subnetworks not reserved for internal HTTP(S) load balancing provide logically isolated and secure network partitions where GCP resources can be launched. When Flow Logs are enabled for a subnet, VMs within that subnet start reporting on all Transmission Control Protocol (TCP) and User Datagram Protocol (UDP) flows.\nEach VM samples the TCP and UDP flows it sees, inbound and outbound, whether the flow is to or from another VM, a host in the on-premises datacenter, a Google service, or a host on the Internet. If two GCP VMs are communicating, and both are in subnets that have VPC Flow Logs enabled, both VMs report the flows.\n\nFlow Logs supports the following use cases:\n\n- Network monitoring\n- Understanding network usage and optimizing network traffic expenses\n- Network forensics\n- Real-time security analysis\n\nFlow Logs provide visibility into network traffic for each VM inside the subnet and can be used to detect anomalous traffic or provide insight during security workflows.\n\nThe Flow Logs must be configured such that all network traffic is logged, the interval of logging is granular to provide detailed information on the connections, no logs are filtered, and metadata to facilitate investigations are included.\n\n**Note**: Subnets reserved for use by internal HTTP(S) load balancers do not support VPC flow logs.",
+          "target": "GCP",
+          "type": 8,
+          "pass": false,
+          "severity": "High",
+          "objectsCount": 219,
+          "remediationId": "15041",
+          "lastUpdate": "1759638705",
+          "acceptedCount": 0,
+          "resourceKind": "compute.googleapis.com/Subnetwork",
+          "isManual": false,
+          "resourceApiEndpoint": "/api/cspm/v1/cloud/resources?controlId=15041&providerType=GCP&resourceKind=compute.googleapis.com/Subnetwork&filter=policyId=14 and zones.id=100b83d6",
+          "supportedDistributions": [
+            {
+              "name": "GCP",
+              "minVersion": 0,
+              "maxVersion": 0
+            }
+          ],
+          "platform": "",
+          "authors": "Sysdig",
+          "passingCount": 0
+        }
+      ],
+      "failedControls": 1,
+      "highSeverityCount": 219,
+      "mediumSeverityCount": 0,
+      "lowSeverityCount": 0,
+      "acceptedCount": 0,
+      "description": "Flow Logs is a feature that enables users to capture information about the IP traffic going to and from network interfaces in the organization's VPC Subnets. Once a flow log is created, the user can view and retrieve its data in Stackdriver Logging. It is recommended that Flow Logs be enabled for every business-critical VPC subnet.",
+      "requirementId": "15040",
+      "zone": {
+        "id": "100b83d6",
+        "name": "Entire Infrastructure"
+      },
+      "passingCount": 0
+    },
+    {
+      "name": "1.2 Ensure that Multi-Factor Authentication is 'Enabled' for All Non-Service Accounts",
+      "pass": false,
+      "severity": "High",
+      "policyId": "14",
+      "policyName": "CIS Google Cloud Platform Foundation Benchmark v2.0.0",
+      "controls": [
+        {
+          "id": "15001",
+          "name": "IAM - Defined Users MFA (GCP)",
+          "description": "Multi-factor authentication requires more than one mechanism to authenticate a user. This secures user logins from attackers exploiting stolen or weak credentials.",
+          "target": "GCP",
+          "type": 8,
+          "pass": false,
+          "severity": "High",
+          "objectsCount": 27,
+          "remediationId": "15001",
+          "lastUpdate": "1759638705",
+          "acceptedCount": 0,
+          "resourceKind": "iam.googleapis.com/User",
+          "isManual": false,
+          "resourceApiEndpoint": "/api/cspm/v1/cloud/resources?controlId=15001&providerType=GCP&resourceKind=iam.googleapis.com/User&filter=policyId=14 and zones.id=100b83d6",
+          "supportedDistributions": [
+            {
+              "name": "GCP",
+              "minVersion": 0,
+              "maxVersion": 0
+            }
+          ],
+          "platform": "",
+          "authors": "Sysdig",
+          "passingCount": 0
+        }
+      ],
+      "failedControls": 1,
+      "highSeverityCount": 27,
+      "mediumSeverityCount": 0,
+      "lowSeverityCount": 0,
+      "acceptedCount": 0,
+      "description": "Setup multi-factor authentication for Google Cloud Platform accounts.",
+      "requirementId": "15001",
+      "zone": {
+        "id": "100b83d6",
+        "name": "Entire Infrastructure"
+      },
+      "passingCount": 0
+    },
+    {
+      "name": "1.4 Ensure That There Are Only GCP-Managed Service Account Keys for Each Service Account",
+      "pass": false,
+      "severity": "High",
+      "policyId": "14",
+      "policyName": "CIS Google Cloud Platform Foundation Benchmark v2.0.0",
+      "controls": [
+        {
+          "id": "15003",
+          "name": "IAM - Disabled Managed Service Accounts' User-Managed Keys",
+          "description": "Anyone who has access to the keys will be able to access resources through the service account. \nGCP-managed keys are used by Cloud Platform services such as App Engine and Compute Engine. These keys cannot be downloaded. Google will keep the keys and automatically rotate them on an approximately weekly basis.\nUser-managed keys are created, downloadable, and managed by users. They expire 10 years from creation.\n\nFor user-managed keys, the user has to take ownership of key management activities which include:\n- Key storage\n- Key distribution\n- Key revocation\n- Key rotation\n- Protecting the keys from unauthorized users\n- Key recovery\n\nEven with key owner precautions, keys can be easily leaked by common development malpractices like checking keys into the source code or leaving them in the Downloads directory, or accidentally leaving them on support blogs/channels.\n\nIt is recommended to prevent user-managed service account keys.",
+          "target": "GCP",
+          "type": 9,
+          "pass": false,
+          "severity": "High",
+          "objectsCount": 8,
+          "remediationId": "15003",
+          "lastUpdate": "1759638705",
+          "acceptedCount": 0,
+          "resourceKind": "iam.googleapis.com/ServiceAccount",
+          "isManual": false,
+          "resourceApiEndpoint": "/api/cspm/v1/cloud/resources?controlId=15003&providerType=GCP&resourceKind=iam.googleapis.com/ServiceAccount&filter=policyId=14 and zones.id=100b83d6",
+          "supportedDistributions": [
+            {
+              "name": "GCP",
+              "minVersion": 0,
+              "maxVersion": 0
+            }
+          ],
+          "platform": "",
+          "authors": "Sysdig",
+          "passingCount": 39
+        }
+      ],
+      "failedControls": 1,
+      "highSeverityCount": 8,
+      "mediumSeverityCount": 0,
+      "lowSeverityCount": 0,
+      "acceptedCount": 0,
+      "description": "User managed service accounts should not have user-managed keys.",
+      "requirementId": "15003",
+      "zone": {
+        "id": "100b83d6",
+        "name": "Entire Infrastructure"
+      },
+      "passingCount": 39
+    }
+  ],
+  "totalCount": "28"
+}
