@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/kaz-under-the-bridge/sysdig-cspm-utils/pkg/client"
+	"github.com/kaz-under-the-bridge/sysdig-cspm-utils/pkg/collector"
 	"github.com/kaz-under-the-bridge/sysdig-cspm-utils/pkg/config"
 	"github.com/kaz-under-the-bridge/sysdig-cspm-utils/pkg/database"
 )
@@ -15,19 +16,18 @@ const version = "1.0.0"
 
 func main() {
 	var (
-		configFile     = flag.String("config", "", "Path to configuration file")
-		apiToken       = flag.String("token", "", "Sysdig API token")
-		apiURL         = flag.String("url", "https://us2.app.sysdig.com", "Sysdig API base URL")
-		command        = flag.String("command", "list", "Command to execute: list, collect")
-		dbPath         = flag.String("db", "data/cspm.db", "SQLite database path")
-		policyType     = flag.String("policy", "", "Filter by policy name (comma-separated for multiple, partial match)")
-		platform       = flag.String("platform", "", "Filter by platform (AWS, GCP, Azure, Kubernetes)")
-		zoneName       = flag.String("zone", "Entire Infrastructure", "Filter by zone name")
-		includePass    = flag.Bool("include-pass", false, "Include passed compliance checks (default: failed only)")
-		batchSize      = flag.Int("batch-size", 3, "Number of concurrent API requests for pagination (default 3)")
-		apiDelay       = flag.Int("api-delay", 1, "Delay in seconds between API batches (default 1)")
-		showHelp       = flag.Bool("help", false, "Show help")
-		showVersion    = flag.Bool("version", false, "Show version")
+		configFile  = flag.String("config", "", "Path to configuration file")
+		apiToken    = flag.String("token", "", "Sysdig API token")
+		apiURL      = flag.String("url", "https://us2.app.sysdig.com", "Sysdig API base URL")
+		command     = flag.String("command", "list", "Command to execute: list, collect")
+		dbPath      = flag.String("db", "data/cspm.db", "SQLite database path")
+		policyType  = flag.String("policy", "", "Filter by policy name (comma-separated for multiple, partial match)")
+		platform    = flag.String("platform", "", "Filter by platform (AWS, GCP, Azure, Kubernetes)")
+		zoneName    = flag.String("zone", "Entire Infrastructure", "Filter by zone name")
+		batchSize   = flag.Int("batch-size", 3, "Number of concurrent API requests for pagination (default 3)")
+		apiDelay    = flag.Int("api-delay", 1, "Delay in seconds between API batches (default 1)")
+		showHelp    = flag.Bool("help", false, "Show help")
+		showVersion = flag.Bool("version", false, "Show version")
 	)
 	flag.Parse()
 
@@ -58,9 +58,9 @@ func main() {
 	// Execute command
 	switch *command {
 	case "list":
-		err = listCompliance(cspmClient, *policyType, *platform, *zoneName, *includePass)
+		err = listCompliance(cspmClient, *policyType, *platform, *zoneName)
 	case "collect":
-		err = collectResources(cspmClient, *dbPath, *policyType, *platform, *zoneName, *includePass, *batchSize, *apiDelay)
+		err = collectResources(cspmClient, *dbPath, *policyType, *platform, *zoneName, *batchSize, *apiDelay)
 	default:
 		log.Fatalf("Unknown command: %s", *command)
 	}
@@ -179,15 +179,11 @@ Environment Variables:
 `, version)
 }
 
-func listCompliance(cspmClient *client.CSPMClient, policyType, platform, zoneName string, includePass bool) error {
-	passMode := "failed only"
-	if includePass {
-		passMode = "all (passed + failed)"
-	}
-	fmt.Printf("Getting compliance requirements (policy: %s, platform: %s, zone: %s, mode: %s)...\n", policyType, platform, zoneName, passMode)
+func listCompliance(cspmClient *client.CSPMClient, policyType, platform, zoneName string) error {
+	fmt.Printf("Getting compliance requirements (policy: %s, platform: %s, zone: %s)...\n", policyType, platform, zoneName)
 
-	// Build filter based on parameters
-	filter := buildFilter(policyType, platform, zoneName, includePass)
+	// Build filter based on parameters (failed only)
+	filter := buildFilter(policyType, platform, zoneName, false)
 	fmt.Printf("Filter: %s\n\n", filter)
 
 	// Get compliance violations
@@ -220,13 +216,9 @@ func listCompliance(cspmClient *client.CSPMClient, policyType, platform, zoneNam
 	return nil
 }
 
-func collectResources(cspmClient *client.CSPMClient, dbPath, policyType, platform, zoneName string, includePass bool, batchSize, apiDelay int) error {
-	passMode := "failed only"
-	if includePass {
-		passMode = "all (passed + failed)"
-	}
-	fmt.Printf("Collecting compliance violations and resources to %s...\n", dbPath)
-	fmt.Printf("Parameters: policy=%s, platform=%s, zone=%s, mode=%s\n", policyType, platform, zoneName, passMode)
+func collectResources(cspmClient *client.CSPMClient, dbPath, policyType, platform, zoneName string, batchSize, apiDelay int) error {
+	fmt.Printf("Collecting compliance violations and control resources to %s...\n", dbPath)
+	fmt.Printf("Parameters: policy=%s, platform=%s, zone=%s\n", policyType, platform, zoneName)
 
 	// Initialize database
 	db, err := database.NewDatabase(dbPath)
@@ -235,77 +227,18 @@ func collectResources(cspmClient *client.CSPMClient, dbPath, policyType, platfor
 	}
 	defer db.Close()
 
-	// Step 1: Get compliance violations
-	fmt.Println("\nStep 1: Getting compliance violations...")
+	// Build filter (failed only)
+	filter := buildFilter(policyType, platform, zoneName, false)
+	fmt.Printf("API Filter: %s\n\n", filter)
 
-	filter := buildFilter(policyType, platform, zoneName, includePass)
-	fmt.Printf("API Filter: %s\n", filter)
+	// Create collector and run collection
+	c := collector.NewComplianceCollector(cspmClient, db)
 
-	// GetAllComplianceRequirementsを使用してページネーション対応（並列化）
-	complianceResponse, err := cspmClient.GetAllComplianceRequirements(filter, 50, batchSize, apiDelay)
-	if err != nil {
-		return fmt.Errorf("failed to get compliance requirements: %w", err)
+	if err := c.CollectComplianceData(filter, 50, batchSize, apiDelay); err != nil {
+		return fmt.Errorf("failed to collect compliance data: %w", err)
 	}
 
-	fmt.Printf("Found %d compliance violations\n", complianceResponse.TotalCount.Int())
-
-	// Save compliance violations to database
-	if err := db.SaveComplianceRequirements(complianceResponse.Data); err != nil {
-		return fmt.Errorf("failed to save compliance requirements: %w", err)
-	}
-
-	// Step 2: Get resources
-	if includePass {
-		fmt.Println("Step 2: Getting all resources (passed + failed) for the policy...")
-	} else {
-		fmt.Println("Step 2: Getting all resources that failed the policy...")
-	}
-
-	// Build policy filter - use the first policy name from compliance violations
-	var policyFilter string
-	if len(complianceResponse.Data) > 0 {
-		if includePass {
-			// Include both passed and failed resources
-			policyFilter = fmt.Sprintf(`policy in ("%s")`, complianceResponse.Data[0].PolicyName)
-		} else {
-			// Only failed resources
-			policyFilter = fmt.Sprintf(`policy.failed in ("%s")`, complianceResponse.Data[0].PolicyName)
-		}
-	} else {
-		fmt.Println("No compliance data found, skipping resource collection")
-		return nil
-	}
-
-	fmt.Printf("Policy Filter: %s\n", policyFilter)
-
-	// Get all resources（並列化）
-	resourceResponse, err := cspmClient.GetAllInventoryResources(policyFilter, 50, batchSize, apiDelay)
-	if err != nil {
-		return fmt.Errorf("failed to get inventory resources: %w", err)
-	}
-
-	allResources := resourceResponse.Data
-
-	if includePass {
-		fmt.Printf("Collected %d resources for the policy (API reported totalCount: %d)\n", len(allResources), resourceResponse.TotalCount.Int())
-	} else {
-		fmt.Printf("Collected %d resources that failed the policy (API reported totalCount: %d)\n", len(allResources), resourceResponse.TotalCount.Int())
-	}
-
-	if len(allResources) < resourceResponse.TotalCount.Int() {
-		fmt.Printf("Note: API's totalCount may include items not returned by pagination. Actual collected: %d\n", len(allResources))
-	}
-	fmt.Println("Note: Resources are collected at policy level. Individual control-to-resource mapping is not available from the API.")
-
-	// Save resources to database
-	if len(allResources) > 0 {
-		if err := db.SaveInventoryResources(allResources); err != nil {
-			return fmt.Errorf("failed to save inventory resources: %w", err)
-		}
-	}
-
-	fmt.Printf("Successfully collected %d violations and %d resources to %s\n",
-		complianceResponse.TotalCount.Int(), len(allResources), dbPath)
+	fmt.Println("\n✓ Collection completed successfully")
 
 	return nil
 }
