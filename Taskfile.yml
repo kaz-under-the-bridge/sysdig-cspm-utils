@@ -3,7 +3,7 @@ version: '3'
 vars:
   BINARY_NAME: cspm-utils
   BUILD_DIR: bin
-  MAIN_PATH: cmd/csmp-utils/main.go
+  MAIN_PATH: cmd/cspm-utils/main.go
   TEST_SERVER_PATH: cmd/test-server/main.go
   COVERAGE_FILE: coverage.out
   COVERAGE_HTML: coverage.html
@@ -308,3 +308,128 @@ tasks:
     desc: 統合テスト実行（APIトークンが必要）
     cmds:
       - CGO_ENABLED=1 go test -v -tags=integration ./...
+
+  # コンプライアンスデータ収集＆レポート生成タスク
+  collect-aws:
+    desc: AWS CIS Benchmarkデータを収集してレポート生成
+    cmds:
+      - task: collect-aws-data
+      - task: report-aws
+
+  collect-gcp:
+    desc: GCP CIS Benchmarkデータを収集してレポート生成
+    cmds:
+      - task: collect-gcp-data
+      - task: report-gcp
+
+  collect-soc2:
+    desc: SOC 2データを収集してレポート生成
+    cmds:
+      - task: collect-soc2-data
+      - task: report-soc2
+
+  collect-all:
+    desc: 全てのコンプライアンスデータを収集してレポート生成
+    cmds:
+      - task: collect-aws
+      - task: collect-gcp
+      - task: collect-soc2
+
+  collect-aws-data:
+    desc: AWS CIS Benchmarkデータを収集（レポート生成なし）
+    deps: [clean, build]
+    cmds:
+      - ./scripts/collect-compliance.sh aws
+    vars:
+      TIMESTAMP:
+        sh: date +%Y%m%d_%H%M%S
+
+  collect-gcp-data:
+    desc: GCP CIS Benchmarkデータを収集（レポート生成なし）
+    deps: [clean, build]
+    cmds:
+      - ./scripts/collect-compliance.sh gcp
+    vars:
+      TIMESTAMP:
+        sh: date +%Y%m%d_%H%M%S
+
+  collect-soc2-data:
+    desc: SOC 2データを収集（レポート生成なし）
+    deps: [clean, build]
+    cmds:
+      - ./scripts/collect-compliance.sh soc2
+    vars:
+      TIMESTAMP:
+        sh: date +%Y%m%d_%H%M%S
+
+  report-aws:
+    desc: AWS CIS Benchmarkレポートを生成（最新データから）
+    cmds:
+      - |
+        LATEST_DB=$(ls -t data/*/cis_aws.db 2>/dev/null | head -n 1)
+        if [ -z "$LATEST_DB" ]; then
+          echo "エラー: AWS CIS Benchmarkデータが見つかりません。先に 'task collect-aws-data' を実行してください。"
+          exit 1
+        fi
+        python3 scripts/generate_compliance_report.py \
+          --db "$LATEST_DB" \
+          --output "data/report_aws_$(date +%Y%m%d_%H%M%S).md" \
+          --severity high \
+          --mode detail \
+          --sort-by violations
+        echo "レポート生成完了: data/report_aws_$(date +%Y%m%d_%H%M%S).md"
+
+  report-gcp:
+    desc: GCP CIS Benchmarkレポートを生成（最新データから）
+    cmds:
+      - |
+        LATEST_DB=$(ls -t data/*/cis_gcp.db 2>/dev/null | head -n 1)
+        if [ -z "$LATEST_DB" ]; then
+          echo "エラー: GCP CIS Benchmarkデータが見つかりません。先に 'task collect-gcp-data' を実行してください。"
+          exit 1
+        fi
+        python3 scripts/generate_compliance_report.py \
+          --db "$LATEST_DB" \
+          --output "data/report_gcp_$(date +%Y%m%d_%H%M%S).md" \
+          --severity high \
+          --mode detail \
+          --sort-by violations
+        echo "レポート生成完了: data/report_gcp_$(date +%Y%m%d_%H%M%S).md"
+
+  report-soc2:
+    desc: SOC 2レポートを生成（最新データから）
+    cmds:
+      - |
+        LATEST_DB=$(ls -t data/*/soc2.db 2>/dev/null | head -n 1)
+        if [ -z "$LATEST_DB" ]; then
+          echo "エラー: SOC 2データが見つかりません。先に 'task collect-soc2-data' を実行してください。"
+          exit 1
+        fi
+        python3 scripts/generate_compliance_report.py \
+          --db "$LATEST_DB" \
+          --output "data/report_soc2_$(date +%Y%m%d_%H%M%S).md" \
+          --severity high \
+          --mode detail \
+          --sort-by violations
+        echo "レポート生成完了: data/report_soc2_$(date +%Y%m%d_%H%M%S).md"
+
+  report-aws-custom:
+    desc: AWS CIS Benchmarkカスタムレポート生成（オプション指定可能）
+    cmds:
+      - |
+        LATEST_DB=$(ls -t data/*/cis_aws.db 2>/dev/null | head -n 1)
+        if [ -z "$LATEST_DB" ]; then
+          echo "エラー: AWS CIS Benchmarkデータが見つかりません。"
+          exit 1
+        fi
+        python3 scripts/generate_compliance_report.py \
+          --db "$LATEST_DB" \
+          --output "{{.OUTPUT | default "data/report_aws_custom.md"}}" \
+          --severity "{{.SEVERITY | default "high"}}" \
+          --mode "{{.MODE | default "detail"}}" \
+          --sort-by "{{.SORT | default "violations"}}"
+    vars:
+      OUTPUT: '{{.OUTPUT}}'
+      SEVERITY: '{{.SEVERITY}}'
+      MODE: '{{.MODE}}'
+      SORT: '{{.SORT}}'
