@@ -177,4 +177,3 @@ func TestComplianceResponse_UnmarshalJSON(t *testing.T) {
 		})
 	}
 }
-

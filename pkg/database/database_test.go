@@ -339,14 +339,14 @@ func TestSaveComplianceRequirementsWithControls(t *testing.T) {
 
 	requirements := []models.ComplianceRequirementWithControls{
 		{
-			RequirementID: "req-1",
-			Name:          "Test Requirement",
-			PolicyID:      "policy-1",
-			PolicyName:    "CIS Amazon Web Services Foundations Benchmark v3.0.0",
-			Severity:      "High",
-			Pass:          false,
+			RequirementID:  "req-1",
+			Name:           "Test Requirement",
+			PolicyID:       "policy-1",
+			PolicyName:     "CIS Amazon Web Services Foundations Benchmark v3.0.0",
+			Severity:       "High",
+			Pass:           false,
 			FailedControls: 2,
-			Description:   "Test description",
+			Description:    "Test description",
 			Zone: models.Zone{
 				ID:   "zone-1",
 				Name: "Test Zone",
@@ -506,11 +506,11 @@ func TestGetComplianceStats(t *testing.T) {
 	// テストデータを準備
 	requirements := []models.ComplianceRequirementWithControls{
 		{
-			RequirementID: "req-1",
-			Name:          "Failed Requirement",
-			PolicyID:      "policy-1",
-			PolicyName:    "Test Policy",
-			Pass:          false,
+			RequirementID:  "req-1",
+			Name:           "Failed Requirement",
+			PolicyID:       "policy-1",
+			PolicyName:     "Test Policy",
+			Pass:           false,
 			FailedControls: 1,
 			Zone: models.Zone{
 				ID:   "zone-1",
