@@ -106,6 +106,96 @@ logs/
   └── collect_soc2_YYYYMMDD_HHMMSS.log  # SOC2収集ログ
 ```
 
+## レポート生成
+
+収集したデータからMarkdownレポートを生成できます。**全てのコンプライアンスポリシー（SOC 2, CIS AWS, CIS GCP等）に対応**しています。
+
+### Python環境のセットアップ
+
+```bash
+# 仮想環境を作成
+python3 -m venv venv
+
+# 仮想環境を有効化
+source venv/bin/activate
+
+# 依存パッケージをインストール
+pip install -r requirements.txt
+```
+
+### 基本的なレポート生成
+
+```bash
+# SOC 2レポート生成（High重要度のみ、デフォルト）
+python3 scripts/generate_compliance_report.py data/soc2.db report_soc2.md
+
+# CIS AWSレポート生成
+python3 scripts/generate_compliance_report.py data/cis_aws.db report_cis_aws.md
+
+# CIS GCPレポート生成
+python3 scripts/generate_compliance_report.py data/cis_gcp.db report_cis_gcp.md
+
+# 全ての重要度を含む
+python3 scripts/generate_compliance_report.py data/soc2.db report.md --severity all
+
+# フルレポート（トップ10 + 詳細 + 統計）
+python3 scripts/generate_compliance_report.py data/soc2.db report.md --mode full
+```
+
+**注**: レポートタイトルはデータベースから自動的にポリシー情報を取得して生成されます。
+- SOC 2 → `SOC2 違反レポート`
+- CIS AWS → `CIS (AWS) 違反レポート`
+- CIS GCP → `CIS (GCP) 違反レポート`
+
+### DeepL翻訳を有効化（オプション）
+
+レポート内の英語説明を日本語に自動翻訳できます。
+
+#### 1. DeepL APIキーの取得
+
+1. [DeepL API](https://www.deepl.com/pro-api)にアクセス
+2. 「無料で登録」をクリック
+3. アカウントを作成（メールアドレス、クレジットカード情報が必要）
+4. 無料枠: **月50万文字まで無料**
+5. APIキーをコピー
+
+#### 2. 環境変数の設定
+
+```bash
+# .devcontainer/.env に追記
+export DEEPL_API_KEY="your-deepl-api-key-here"
+
+# または直接設定
+export DEEPL_API_KEY="your-deepl-api-key-here"
+```
+
+#### 3. 翻訳付きレポート生成
+
+```bash
+# 環境変数を設定してからレポート生成
+source .devcontainer/.env
+python3 scripts/generate_compliance_report.py data/soc2.db report_ja.md
+```
+
+翻訳が有効な場合、スクリプト実行時に以下のメッセージが表示されます：
+```
+✓ DeepL翻訳が有効化されました
+```
+
+**後方互換**: 旧スクリプト名 `generate_soc2_report.py` も引き続き使用可能です（シンボリックリンク）。
+
+### レポートオプション
+
+| オプション | 値 | デフォルト | 説明 |
+|-----------|-----|-----------|------|
+| `--severity` | `high`, `all` | `high` | 重要度フィルター |
+| `--mode` | `detail`, `full` | `detail` | レポートモード |
+
+**レポートモードの違い：**
+
+- **detail（デフォルト）**: 詳細レポートのみ。各コントロールに説明あり。
+- **full**: トップ10違反要件 + 詳細レポート + リソース統計 + トップ違反コントロール
+
 ## 開発
 
 ### ビルドコマンド
