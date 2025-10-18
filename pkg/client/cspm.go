@@ -172,175 +172,11 @@ func (c *CSPMClient) GetAllComplianceRequirements(filter string, pageSize, batch
 	}, nil
 }
 
-// GetInventoryResources retrieves inventory resources using specified filter (backward compatible)
-func (c *CSPMClient) GetInventoryResources(filter string, limit int) (*models.InventoryResponse, error) {
-	return c.GetInventoryResourcesPaginated(filter, 0, limit)
-}
-
-// GetInventoryResourcesPaginated retrieves inventory resources with pagination support
-func (c *CSPMClient) GetInventoryResourcesPaginated(filter string, pageNumber, pageSize int) (*models.InventoryResponse, error) {
-	endpoint := "/api/cspm/v1/inventory/resources"
-
-	// Build query parameters
-	params := url.Values{}
-	if filter != "" {
-		params.Set("filter", filter)
-	}
-	if pageNumber > 0 {
-		params.Set("pageNumber", strconv.Itoa(pageNumber))
-	}
-	if pageSize > 0 {
-		params.Set("limit", strconv.Itoa(pageSize))
-	}
-
-	fullURL := endpoint
-	if len(params) > 0 {
-		fullURL += "?" + params.Encode()
-	}
-
-	resp, err := c.Client.MakeRequest("GET", fullURL, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get inventory resources: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		// エラーレスポンスボディを読み取る
-		var errResp map[string]interface{}
-		if err := json.NewDecoder(resp.Body).Decode(&errResp); err == nil {
-			if msg, ok := errResp["message"]; ok {
-				return nil, fmt.Errorf("API request failed with status %d: %v (filter: %s)", resp.StatusCode, msg, filter)
-			}
-		}
-		return nil, fmt.Errorf("API request failed with status %d (filter: %s)", resp.StatusCode, filter)
-	}
-
-	var response models.InventoryResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return nil, fmt.Errorf("failed to parse inventory response: %w", err)
-	}
-
-	return &response, nil
-}
-
-// GetAllInventoryResources retrieves all inventory resources by iterating through all pages with parallel processing
-func (c *CSPMClient) GetAllInventoryResources(filter string, pageSize, batchSize, apiDelay int) (*models.InventoryResponse, error) {
-	if pageSize <= 0 {
-		pageSize = 50 // デフォルト値
-	}
-	if batchSize <= 0 {
-		batchSize = 3 // デフォルト値
-	}
-	if apiDelay < 0 {
-		apiDelay = 1 // デフォルト値
-	}
-
-	// 最初のページを取得してtotalCountを確認
-	firstResponse, err := c.GetInventoryResourcesPaginated(filter, 1, pageSize)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get first page: %w", err)
-	}
-
-	totalCount := firstResponse.TotalCount
-	totalPages := (totalCount.Int() + pageSize - 1) / pageSize
-
-	fmt.Printf("  Total pages: %d (pageSize: %d)\n", totalPages, pageSize)
-
-	// 全データを格納するスライス
-	allData := make([]models.InventoryResource, 0, totalCount.Int())
-	allData = append(allData, firstResponse.Data...)
-
-	if totalPages <= 1 {
-		fmt.Println()
-		return &models.InventoryResponse{
-			Data:       allData,
-			TotalCount: totalCount,
-		}, nil
-	}
-
-	// 並列処理用の変数
-	var mu sync.Mutex
-	var wg sync.WaitGroup
-	errors := make([]error, 0)
-	pageResults := make(map[int][]models.InventoryResource)
-
-	// ページ2以降をバッチで並列処理
-	for i := 2; i <= totalPages; i += batchSize {
-		end := i + batchSize
-		if end > totalPages {
-			end = totalPages + 1 // +1 because j < end (exclusive upper bound)
-		}
-
-		for j := i; j < end && j <= totalPages; j++ {
-			wg.Add(1)
-			go func(pageNum int) {
-				defer wg.Done()
-
-				response, err := c.GetInventoryResourcesPaginated(filter, pageNum, pageSize)
-				if err != nil {
-					mu.Lock()
-					errors = append(errors, fmt.Errorf("failed to get page %d: %w", pageNum, err))
-					mu.Unlock()
-					return
-				}
-
-				mu.Lock()
-				pageResults[pageNum] = response.Data
-				if len(response.Data) == 0 {
-					fmt.Printf("\n[WARN] Page %d returned 0 resources\n", pageNum)
-				}
-				currentTotal := len(allData)
-				for _, data := range pageResults {
-					currentTotal += len(data)
-				}
-				pagesProcessed := len(pageResults) + 1 // +1 for first page
-				fmt.Printf("\r  Progress: %d/%d pages processed, %d resources collected (page %d: %d items)", pagesProcessed, totalPages, currentTotal, pageNum, len(response.Data))
-				mu.Unlock()
-			}(j)
-		}
-		wg.Wait()
-
-		// エラーチェック
-		if len(errors) > 0 {
-			fmt.Printf("\n[ERROR] Encountered %d errors during inventory resource batch processing\n", len(errors))
-			for i, err := range errors {
-				fmt.Printf("[ERROR %d] %v\n", i+1, err)
-			}
-			return nil, errors[0]
-		}
-
-		// バッチ間の遅延
-		if i+batchSize <= totalPages {
-			time.Sleep(time.Duration(apiDelay) * time.Second)
-		}
-	}
-
-	// ページ順にデータを結合
-	for page := 2; page <= totalPages; page++ {
-		if data, ok := pageResults[page]; ok {
-			allData = append(allData, data...)
-		}
-	}
-
-	fmt.Println() // 改行
-
-	return &models.InventoryResponse{
-		Data:       allData,
-		TotalCount: totalCount,
-	}, nil
-}
-
 // GetComplianceViolations retrieves compliance violations for a specific policy and zone
 func (c *CSPMClient) GetComplianceViolations(policyName, zoneName string) (*models.ComplianceResponse, error) {
 	filter := fmt.Sprintf(`pass = "false" and policy.name in ("%s") and zone.name in ("%s")`,
 		policyName, zoneName)
 	return c.GetComplianceRequirements(filter)
-}
-
-// GetResourcesForControl retrieves resources associated with a specific failed control
-func (c *CSPMClient) GetResourcesForControl(controlName string, limit int) (*models.InventoryResponse, error) {
-	filter := fmt.Sprintf(`control.failed in ("%s")`, controlName)
-	return c.GetInventoryResources(filter, limit)
 }
 
 // GetComplianceRequirementsWithControls retrieves compliance requirements with controls included
@@ -349,6 +185,7 @@ func (c *CSPMClient) GetComplianceRequirementsWithControls(filter string, pageNu
 
 	// Build query parameters
 	params := url.Values{}
+	params.Set("includeControls", "true") // Include controls in response
 	if filter != "" {
 		params.Set("filter", filter)
 	}
