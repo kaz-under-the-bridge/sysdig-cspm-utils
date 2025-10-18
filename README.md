@@ -45,50 +45,24 @@ export SYSDIG_API_URL="https://us2.app.sysdig.com"  # オプション
 
 ### 基本的な使い方
 
-#### スクリプトを使用（推奨）
+#### ワンコマンドでデータ収集＋レポート生成（最短・推奨）
 
 ```bash
-# 全て収集（AWS CIS + GCP CIS + SOC2）
-./scripts/collect-compliance.sh all
+# 全て収集＋レポート生成（AWS CIS + GCP CIS + SOC2）
+task workflow-all
 
-# 特定の収集対象のみ
-./scripts/collect-compliance.sh aws          # AWS CISのみ
-./scripts/collect-compliance.sh gcp          # GCP CISのみ
-./scripts/collect-compliance.sh soc2         # SOC2のみ
-./scripts/collect-compliance.sh aws gcp      # AWSとGCPのみ
-
-# ゾーンを指定
-./scripts/collect-compliance.sh all --zone "Production"
-
-# 出力ディレクトリを指定
-./scripts/collect-compliance.sh aws --output data/custom-dir
-
-# ヘルプ表示
-./scripts/collect-compliance.sh --help
+# 個別に収集＋レポート生成
+task workflow-aws     # AWS CISのみ
+task workflow-gcp     # GCP CISのみ
+task workflow-soc2    # SOC2のみ
 ```
 
-スクリプトは以下を自動的に実行します：
-- 環境変数の読み込み（`.devcontainer/.env`）
-- バイナリの自動ビルド（未ビルドの場合）
-- タイムスタンプ付きディレクトリの作成
-- 指定した収集対象のデータ取得
-- 収集結果のサマリー表示
-
-#### 手動でコマンドを実行
-
-```bash
-# 環境変数を読み込む
-source .devcontainer/.env
-
-# ビルド
-task build
-
-# コンプライアンスデータ収集
-./bin/cspm-utils -command collect \
-  -policy "CIS Amazon Web Services Foundations Benchmark v3.0.0" \
-  -zone "Entire Infrastructure" \
-  -db data/cis_aws.db
-```
+**自動処理内容:**
+- 環境変数の読み込み
+- バイナリの自動ビルド
+- データ収集
+- **同一ディレクトリにレポート生成**（High重要度、詳細モード）
+- 結果サマリー表示
 
 ## 出力ファイル
 
@@ -96,9 +70,12 @@ task build
 
 ```
 data/YYYYMMDD_HHMMSS/
-  ├── cis_aws.db   # AWS CIS Benchmark結果
-  ├── cis_gcp.db   # GCP CIS Benchmark結果
-  └── soc2.db      # SOC 2結果
+  ├── cis_aws.db      # AWS CIS Benchmark結果（データベース）
+  ├── report_aws.md   # AWS CIS Benchmarkレポート（Markdown）
+  ├── cis_gcp.db      # GCP CIS Benchmark結果（データベース）
+  ├── report_gcp.md   # GCP CIS Benchmarkレポート（Markdown）
+  ├── soc2.db         # SOC 2結果（データベース）
+  └── report_soc2.md  # SOC 2レポート（Markdown）
 
 logs/
   ├── collect_aws_YYYYMMDD_HHMMSS.log   # AWS収集ログ
@@ -106,11 +83,27 @@ logs/
   └── collect_soc2_YYYYMMDD_HHMMSS.log  # SOC2収集ログ
 ```
 
-## レポート生成
+## カスタムレポート生成
 
-収集したデータからMarkdownレポートを生成できます。**全てのコンプライアンスポリシー（SOC 2, CIS AWS, CIS GCP等）に対応**しています。
+既存のデータベースから異なる設定でレポートを再生成できます。
 
-### Python環境のセットアップ
+### 既存DBからの再生成
+
+```bash
+# 既存の最新DBからレポート再生成（別タイムスタンプで生成）
+task report-aws
+task report-gcp
+task report-soc2
+
+# カスタム設定でレポート生成
+task report-aws-custom OUTPUT=custom.md SEVERITY=all MODE=full
+```
+
+### Python環境での直接実行
+
+Python環境で直接レポート生成スクリプトを実行することも可能です。
+
+#### Python環境のセットアップ
 
 ```bash
 # 仮想環境を作成
@@ -123,90 +116,73 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 基本的なレポート生成
+#### レポート生成コマンド
 
 ```bash
-# SOC 2レポート生成（High重要度のみ、デフォルト）
+# 基本（High重要度、詳細モード）
 python3 scripts/generate_compliance_report.py data/soc2.db report_soc2.md
-
-# CIS AWSレポート生成
-python3 scripts/generate_compliance_report.py data/cis_aws.db report_cis_aws.md
-
-# CIS GCPレポート生成
-python3 scripts/generate_compliance_report.py data/cis_gcp.db report_cis_gcp.md
 
 # 全ての重要度を含む
 python3 scripts/generate_compliance_report.py data/soc2.db report.md --severity all
 
 # フルレポート（トップ10 + 詳細 + 統計）
 python3 scripts/generate_compliance_report.py data/soc2.db report.md --mode full
+
+# ソート順を変更
+python3 scripts/generate_compliance_report.py data/soc2.db report.md --sort-by name
 ```
 
-**注**: レポートタイトルはデータベースから自動的にポリシー情報を取得して生成されます。
-- SOC 2 → `SOC2 違反レポート`
-- CIS AWS → `CIS (AWS) 違反レポート`
-- CIS GCP → `CIS (GCP) 違反レポート`
-
-### DeepL翻訳を有効化（オプション）
-
-レポート内の英語説明を日本語に自動翻訳できます。
-
-#### 1. DeepL APIキーの取得
-
-1. [DeepL API](https://www.deepl.com/pro-api)にアクセス
-2. 「無料で登録」をクリック
-3. アカウントを作成（メールアドレス、クレジットカード情報が必要）
-4. 無料枠: **月50万文字まで無料**
-5. APIキーをコピー
-
-#### 2. 環境変数の設定
-
-```bash
-# .devcontainer/.env に追記
-export DEEPL_API_KEY="your-deepl-api-key-here"
-
-# または直接設定
-export DEEPL_API_KEY="your-deepl-api-key-here"
-```
-
-#### 3. 翻訳付きレポート生成
-
-```bash
-# 環境変数を設定してからレポート生成
-source .devcontainer/.env
-python3 scripts/generate_compliance_report.py data/soc2.db report_ja.md
-```
-
-翻訳が有効な場合、スクリプト実行時に以下のメッセージが表示されます：
-```
-✓ DeepL翻訳が有効化されました
-```
-
-**後方互換**: 旧スクリプト名 `generate_soc2_report.py` も引き続き使用可能です（シンボリックリンク）。
-
-### レポートオプション
+#### レポートオプション
 
 | オプション | 値 | デフォルト | 説明 |
 |-----------|-----|-----------|------|
 | `--severity` | `high`, `all` | `high` | 重要度フィルター |
 | `--mode` | `detail`, `full` | `detail` | レポートモード |
-
-**レポートモードの違い：**
-
-- **detail（デフォルト）**: 詳細レポートのみ。各コントロールに説明あり。
-- **full**: トップ10違反要件 + 詳細レポート + リソース統計 + トップ違反コントロール
+| `--sort-by` | `violations`, `name`, `severity` | `violations` | ソート順 |
 
 ## 開発
 
-### ビルドコマンド
+### 主要タスク
 
 ```bash
-# Taskを使用
-task build        # ビルド
-task test         # テスト実行
-task fmt          # コードフォーマット
-task check        # 全品質チェック
-task pre-commit   # コミット前チェック
+# タスク一覧表示
+task --list
+
+# ワークフロー（データ収集＋レポート生成）
+task workflow-all     # 全て実行
+task workflow-aws     # AWS CISのみ
+task workflow-gcp     # GCP CISのみ
+task workflow-soc2    # SOC2のみ
+
+# 開発・ビルド
+task build            # ビルド
+task test             # テスト実行
+task fmt              # コードフォーマット
+task fix              # 自動整形（推奨）
+task check            # 全品質チェック
+task pre-commit       # コミット前チェック
+
+# レポート再生成
+task report-aws       # 既存DBから再生成
+task report-gcp       # 既存DBから再生成
+task report-soc2      # 既存DBから再生成
+```
+
+### コード編集後の必須タスク
+
+```bash
+# 最低限の品質チェック
+task fix    # goimportsで自動整形
+task vet    # go vetで静的解析
+
+# または統合コマンド
+task check  # 全品質チェック（fmt, vet, staticcheck, lint, test）
+```
+
+### コミット前の必須タスク
+
+```bash
+task pre-commit  # fmt + lint + test-short + git diff確認
 ```
 
 ### Dev Container
@@ -215,6 +191,8 @@ VS Code Dev Container対応。以下の手順で開発環境を構築：
 
 1. `.devcontainer/.env`ファイルを作成し、環境変数を設定
 2. VS Codeで「Dev Containerで再度開く」を選択
+
+詳細な開発ガイドは[CLAUDE.md](CLAUDE.md)を参照してください。
 
 ## ドキュメント
 

@@ -21,39 +21,27 @@ Sysdig CSPMのコンプライアンス結果と違反リソースを管理・分
 4. **データベース管理**: SQLiteによる構造化データストレージと分析機能
 5. **レポート生成**: コンプライアンス違反の分析レポート自動生成
 
-## 推奨実行フロー
+## 最短実行フロー（推奨）
 
-### 標準的なコンプライアンスデータ取得
+### ワンコマンドでデータ収集＋レポート生成
 
 ```bash
-# scripts/collect-compliance.shを使用（推奨）
-./scripts/collect-compliance.sh [targets] [options]
+# 全て収集＋レポート生成（AWS CIS + GCP CIS + SOC2）
+task workflow-all
 
-# 全て収集（AWS CIS + GCP CIS + SOC2）
-./scripts/collect-compliance.sh all
-
-# 特定の収集対象のみ
-./scripts/collect-compliance.sh aws          # AWS CISのみ
-./scripts/collect-compliance.sh gcp          # GCP CISのみ
-./scripts/collect-compliance.sh soc2         # SOC2のみ
-./scripts/collect-compliance.sh aws gcp      # AWSとGCPのみ
-
-# ゾーンを指定
-./scripts/collect-compliance.sh all --zone "Production"
-
-# 出力ディレクトリを指定
-./scripts/collect-compliance.sh aws --output data/custom-dir
-
-# ヘルプ表示
-./scripts/collect-compliance.sh --help
+# 個別に収集＋レポート生成
+task workflow-aws     # AWS CISのみ
+task workflow-gcp     # GCP CISのみ
+task workflow-soc2    # SOC2のみ
 ```
 
-**スクリプトの自動処理:**
+**自動処理内容:**
 1. 環境変数の読み込み（`.devcontainer/.env`）
-2. バイナリの自動ビルド（未ビルドの場合）
+2. バイナリの自動ビルド
 3. タイムスタンプ付きディレクトリの作成
-4. 指定した収集対象のコンプライアンスデータ取得
-5. 収集結果のサマリー表示
+4. コンプライアンスデータ収集
+5. **同一ディレクトリにデフォルト設定でレポート生成**（High重要度、詳細モード）
+6. 結果サマリー表示
 
 **収集対象:**
 - **aws**: CIS Amazon Web Services Foundations Benchmark v3.0.0
@@ -64,9 +52,12 @@ Sysdig CSPMのコンプライアンス結果と違反リソースを管理・分
 
 ```
 data/YYYYMMDD_HHMMSS/
-  ├── cis_aws.db   # AWS CIS Benchmark結果（コンプライアンス違反＋リソース詳細）
-  ├── cis_gcp.db   # GCP CIS Benchmark結果（コンプライアンス違反＋リソース詳細）
-  └── soc2.db      # SOC 2結果（コンプライアンス違反＋リソース詳細）
+  ├── cis_aws.db      # AWS CIS Benchmark結果（データベース）
+  ├── report_aws.md   # AWS CIS Benchmarkレポート（Markdown）
+  ├── cis_gcp.db      # GCP CIS Benchmark結果（データベース）
+  ├── report_gcp.md   # GCP CIS Benchmarkレポート（Markdown）
+  ├── soc2.db         # SOC 2結果（データベース）
+  └── report_soc2.md  # SOC 2レポート（Markdown）
 
 logs/
   ├── collect_aws_YYYYMMDD_HHMMSS.log   # AWS収集ログ
@@ -74,97 +65,100 @@ logs/
   └── collect_soc2_YYYYMMDD_HHMMSS.log  # SOC2収集ログ
 ```
 
-## ビルドとテストコマンド
+### 既存データベースからのレポート再生成
 
-### Makeを使用（シンプルな操作）
+既にデータベースがある場合、レポートのみ再生成できます：
 
 ```bash
-# ビルド
-make build
+# 既存の最新DBからレポート再生成（別タイムスタンプで生成）
+task report-aws
+task report-gcp
+task report-soc2
 
-# テスト実行
-make test
-
-# 統合テスト（要API認証）
-make integration-test
-
-# クリーンビルド
-make clean build
-
-# コードフォーマット
-make fmt
-
-# リント実行
-make lint
-
-# 依存関係管理
-make deps
-
-# ヘルプ表示
-make help
+# カスタム設定でレポート生成
+task report-aws-custom OUTPUT=custom.md SEVERITY=all MODE=full
 ```
 
-### Taskを使用（詳細な制御）
+## 開発時の必須タスク
+
+### コード編集後に必ず実行
 
 ```bash
-# タスク一覧表示
-task --list
+# 最低限の品質チェック
+task fix    # goimportsで自動整形（go fmtを含む）
+task vet    # go vetで静的解析
 
-# ビルド
-task build
-
-# テスト実行（自動的にgo vetを実行）
-task test
-
-# カバレッジ付きテスト
-task test-coverage
-
-# レース条件検出
-task test-race
-
-# コードフォーマット（gofmt + goimports）
-task fmt
-
-# リント実行
-task lint
-
-# 自動修正可能なリント問題を修正
-task lint-fix
-
-# すべての品質チェック実行（fmt, vet, staticcheck, lint, test）
-task check
-
-# コミット前チェック
-task pre-commit
-
-# 依存関係管理
-task deps
-task deps-update
-
-# 統合テスト
-task integration-test
-
-# テストサーバーをビルド＆実行
-task build-test-server
-task run-test-server
-
-# リリースビルド（全プラットフォーム）
-task release
-
-# 特定パッケージのテスト
-task test-pkg PKG=pkg/client
+# または統合コマンド
+task check  # 全品質チェック実行（fmt, vet, staticcheck, lint, test）
 ```
 
-**重要**: Goコードを編集した際は必ず以下を実行:
+### コミット前に必ず実行
+
 ```bash
-task fmt    # goimports + gofmt で自動整形
-task vet    # go vet で静的解析
+task pre-commit  # fmt + lint + test-short + git diff確認
 ```
 
-または統合コマンド:
+### 主要タスク一覧
+
+#### ワークフロータスク（データ収集＋レポート生成）
 ```bash
-task fix    # goimports + go fmt を一括実行
-task check  # 全品質チェックを実行
+task workflow-all    # 全て実行（AWS + GCP + SOC2）
+task workflow-aws    # AWS CISのみ
+task workflow-gcp    # GCP CISのみ
+task workflow-soc2   # SOC2のみ
+```
+
+#### 開発・ビルドタスク
+```bash
+task --list          # 全タスク一覧表示
+task build           # バイナリビルド
+task clean           # ビルド成果物削除
+task run             # ビルド＆実行
+```
+
+#### テストタスク
+```bash
+task test            # 全テスト実行（go vet前提）
+task test-coverage   # カバレッジ付きテスト
+task test-race       # レース条件検出テスト
+task test-short      # 短時間テストのみ
+task test-pkg PKG=pkg/client  # 特定パッケージのテスト
+```
+
+#### コード品質タスク
+```bash
+task fmt             # コードフォーマット（go fmt + gofmt）
+task fix             # 自動整形（goimportsのみ、推奨）
+task vet             # go vet実行
+task lint            # リント実行
+task lint-fix        # 自動修正可能なリント問題を修正
+task staticcheck     # staticcheck実行
+task check           # 全品質チェック（fmt + vet + staticcheck + lint + test）
+```
+
+#### 依存関係管理タスク
+```bash
+task deps            # 依存関係管理（download + tidy + verify）
+task deps-update     # 依存関係更新
+task tidy            # go mod tidy
+```
+
+#### レポート生成タスク
+```bash
+task report-aws      # 既存DBから再レポート生成
+task report-gcp      # 既存DBから再レポート生成
+task report-soc2     # 既存DBから再レポート生成
+task report-aws-custom OUTPUT=file.md SEVERITY=all MODE=full  # カスタム設定
+```
+
+#### その他のタスク
+```bash
+task release         # リリースビルド（全プラットフォーム）
+task ci              # CI環境タスク
+task pre-commit      # コミット前チェック
+task docker-build    # Dockerイメージビルド
+task docker-run      # Dockerコンテナ実行
+task integration-test # 統合テスト（要APIトークン）
 ```
 
 ## 主要APIエンドポイント
@@ -201,7 +195,7 @@ export SYSDIG_CACHE_TTL="900"                        # キャッシュTTL（秒�
 │   └── .env               # 環境変数（要作成、.gitignore対象）
 ├── .vscode/               # VS Code設定
 ├── cmd/
-│   ├── csmp-utils/        # メインCLIアプリケーション
+│   ├── cspm-utils/        # メインCLIアプリケーション
 │   └── test-server/       # テスト用モックサーバー
 ├── pkg/
 │   ├── cache/             # キャッシュ管理
