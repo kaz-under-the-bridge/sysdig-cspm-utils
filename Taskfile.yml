@@ -257,10 +257,9 @@ tasks:
       - goimports -w .
 
   fix:
-    desc: コード修正後の自動整形（goimports + go fmt）
+    desc: コード修正後の自動整形（goimportsがgo fmtを含む）
     cmds:
       - goimports -w .
-      - go fmt ./...
 
   complexity:
     desc: 循環的複雑度をチェック（要gocyclo）
@@ -309,66 +308,14 @@ tasks:
     cmds:
       - CGO_ENABLED=1 go test -v -tags=integration ./...
 
-  # コンプライアンスデータ収集＆レポート生成タスク
-  collect-aws:
-    desc: AWS CIS Benchmarkデータを収集してレポート生成
-    cmds:
-      - task: collect-aws-data
-      - task: report-aws
-
-  collect-gcp:
-    desc: GCP CIS Benchmarkデータを収集してレポート生成
-    cmds:
-      - task: collect-gcp-data
-      - task: report-gcp
-
-  collect-soc2:
-    desc: SOC 2データを収集してレポート生成
-    cmds:
-      - task: collect-soc2-data
-      - task: report-soc2
-
-  collect-all:
-    desc: 全てのコンプライアンスデータを収集してレポート生成
-    cmds:
-      - task: collect-aws
-      - task: collect-gcp
-      - task: collect-soc2
-
-  collect-aws-data:
-    desc: AWS CIS Benchmarkデータを収集（レポート生成なし）
-    deps: [clean, build]
-    cmds:
-      - ./scripts/collect-compliance.sh aws
-    vars:
-      TIMESTAMP:
-        sh: date +%Y%m%d_%H%M%S
-
-  collect-gcp-data:
-    desc: GCP CIS Benchmarkデータを収集（レポート生成なし）
-    deps: [clean, build]
-    cmds:
-      - ./scripts/collect-compliance.sh gcp
-    vars:
-      TIMESTAMP:
-        sh: date +%Y%m%d_%H%M%S
-
-  collect-soc2-data:
-    desc: SOC 2データを収集（レポート生成なし）
-    deps: [clean, build]
-    cmds:
-      - ./scripts/collect-compliance.sh soc2
-    vars:
-      TIMESTAMP:
-        sh: date +%Y%m%d_%H%M%S
-
+  # 既存データベースからのレポート再生成タスク
   report-aws:
-    desc: AWS CIS Benchmarkレポートを生成（最新データから）
+    desc: 既存のAWS CIS Benchmarkデータベースから再レポート生成（最新DBを使用）
     cmds:
       - |
         LATEST_DB=$(ls -t data/*/cis_aws.db 2>/dev/null | head -n 1)
         if [ -z "$LATEST_DB" ]; then
-          echo "エラー: AWS CIS Benchmarkデータが見つかりません。先に 'task collect-aws-data' を実行してください。"
+          echo "エラー: AWS CIS Benchmarkデータが見つかりません。先に 'task workflow-aws' を実行してください。"
           exit 1
         fi
         python3 scripts/generate_compliance_report.py \
@@ -380,12 +327,12 @@ tasks:
         echo "レポート生成完了: data/report_aws_$(date +%Y%m%d_%H%M%S).md"
 
   report-gcp:
-    desc: GCP CIS Benchmarkレポートを生成（最新データから）
+    desc: 既存のGCP CIS Benchmarkデータベースから再レポート生成（最新DBを使用）
     cmds:
       - |
         LATEST_DB=$(ls -t data/*/cis_gcp.db 2>/dev/null | head -n 1)
         if [ -z "$LATEST_DB" ]; then
-          echo "エラー: GCP CIS Benchmarkデータが見つかりません。先に 'task collect-gcp-data' を実行してください。"
+          echo "エラー: GCP CIS Benchmarkデータが見つかりません。先に 'task workflow-gcp' を実行してください。"
           exit 1
         fi
         python3 scripts/generate_compliance_report.py \
@@ -397,12 +344,12 @@ tasks:
         echo "レポート生成完了: data/report_gcp_$(date +%Y%m%d_%H%M%S).md"
 
   report-soc2:
-    desc: SOC 2レポートを生成（最新データから）
+    desc: 既存のSOC 2データベースから再レポート生成（最新DBを使用）
     cmds:
       - |
         LATEST_DB=$(ls -t data/*/soc2.db 2>/dev/null | head -n 1)
         if [ -z "$LATEST_DB" ]; then
-          echo "エラー: SOC 2データが見つかりません。先に 'task collect-soc2-data' を実行してください。"
+          echo "エラー: SOC 2データが見つかりません。先に 'task workflow-soc2' を実行してください。"
           exit 1
         fi
         python3 scripts/generate_compliance_report.py \
@@ -433,3 +380,151 @@ tasks:
       SEVERITY: '{{.SEVERITY}}'
       MODE: '{{.MODE}}'
       SORT: '{{.SORT}}'
+
+  # 統合ワークフロータスク（データ収集 + レポート生成を同一ディレクトリに出力）
+  workflow-aws:
+    desc: AWS CIS Benchmarkのデータ収集とレポート生成を実行（同一ディレクトリに出力）
+    deps: [build]
+    cmds:
+      - |
+        TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+        DATA_DIR="data/${TIMESTAMP}"
+
+        echo "📊 AWS CIS Benchmarkワークフロー開始"
+        echo "出力ディレクトリ: ${DATA_DIR}"
+        echo ""
+
+        # データ収集
+        ./scripts/collect-compliance.sh aws --output "${DATA_DIR}"
+
+        # レポート生成（デフォルト設定: High重要度、詳細モード）
+        if [ -f "${DATA_DIR}/cis_aws.db" ]; then
+          echo ""
+          echo "📄 レポート生成中..."
+          python3 scripts/generate_compliance_report.py \
+            "${DATA_DIR}/cis_aws.db" \
+            "${DATA_DIR}/report_aws.md"
+          echo "✅ レポート生成完了: ${DATA_DIR}/report_aws.md"
+        else
+          echo "⚠️  データベースファイルが見つかりません: ${DATA_DIR}/cis_aws.db"
+          exit 1
+        fi
+
+        echo ""
+        echo "✅ AWS CIS Benchmarkワークフロー完了"
+        echo "出力: ${DATA_DIR}/"
+        ls -lh "${DATA_DIR}/" | grep -v "^total"
+
+  workflow-gcp:
+    desc: GCP CIS Benchmarkのデータ収集とレポート生成を実行（同一ディレクトリに出力）
+    deps: [build]
+    cmds:
+      - |
+        TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+        DATA_DIR="data/${TIMESTAMP}"
+
+        echo "📊 GCP CIS Benchmarkワークフロー開始"
+        echo "出力ディレクトリ: ${DATA_DIR}"
+        echo ""
+
+        # データ収集
+        ./scripts/collect-compliance.sh gcp --output "${DATA_DIR}"
+
+        # レポート生成（デフォルト設定: High重要度、詳細モード）
+        if [ -f "${DATA_DIR}/cis_gcp.db" ]; then
+          echo ""
+          echo "📄 レポート生成中..."
+          python3 scripts/generate_compliance_report.py \
+            "${DATA_DIR}/cis_gcp.db" \
+            "${DATA_DIR}/report_gcp.md"
+          echo "✅ レポート生成完了: ${DATA_DIR}/report_gcp.md"
+        else
+          echo "⚠️  データベースファイルが見つかりません: ${DATA_DIR}/cis_gcp.db"
+          exit 1
+        fi
+
+        echo ""
+        echo "✅ GCP CIS Benchmarkワークフロー完了"
+        echo "出力: ${DATA_DIR}/"
+        ls -lh "${DATA_DIR}/" | grep -v "^total"
+
+  workflow-soc2:
+    desc: SOC 2のデータ収集とレポート生成を実行（同一ディレクトリに出力）
+    deps: [build]
+    cmds:
+      - |
+        TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+        DATA_DIR="data/${TIMESTAMP}"
+
+        echo "📊 SOC 2ワークフロー開始"
+        echo "出力ディレクトリ: ${DATA_DIR}"
+        echo ""
+
+        # データ収集
+        ./scripts/collect-compliance.sh soc2 --output "${DATA_DIR}"
+
+        # レポート生成（デフォルト設定: High重要度、詳細モード）
+        if [ -f "${DATA_DIR}/soc2.db" ]; then
+          echo ""
+          echo "📄 レポート生成中..."
+          python3 scripts/generate_compliance_report.py \
+            "${DATA_DIR}/soc2.db" \
+            "${DATA_DIR}/report_soc2.md"
+          echo "✅ レポート生成完了: ${DATA_DIR}/report_soc2.md"
+        else
+          echo "⚠️  データベースファイルが見つかりません: ${DATA_DIR}/soc2.db"
+          exit 1
+        fi
+
+        echo ""
+        echo "✅ SOC 2ワークフロー完了"
+        echo "出力: ${DATA_DIR}/"
+        ls -lh "${DATA_DIR}/" | grep -v "^total"
+
+  workflow-all:
+    desc: 全てのコンプライアンス（AWS/GCP/SOC2）のデータ収集とレポート生成を実行
+    deps: [build]
+    cmds:
+      - |
+        TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+        DATA_DIR="data/${TIMESTAMP}"
+
+        echo "📊 全コンプライアンスワークフロー開始"
+        echo "出力ディレクトリ: ${DATA_DIR}"
+        echo ""
+
+        # データ収集（全て）
+        ./scripts/collect-compliance.sh all --output "${DATA_DIR}"
+
+        # レポート生成
+        echo ""
+        echo "📄 レポート生成中..."
+
+        # AWS CIS
+        if [ -f "${DATA_DIR}/cis_aws.db" ]; then
+          python3 scripts/generate_compliance_report.py \
+            "${DATA_DIR}/cis_aws.db" \
+            "${DATA_DIR}/report_aws.md"
+          echo "✅ AWS CISレポート生成完了"
+        fi
+
+        # GCP CIS
+        if [ -f "${DATA_DIR}/cis_gcp.db" ]; then
+          python3 scripts/generate_compliance_report.py \
+            "${DATA_DIR}/cis_gcp.db" \
+            "${DATA_DIR}/report_gcp.md"
+          echo "✅ GCP CISレポート生成完了"
+        fi
+
+        # SOC 2
+        if [ -f "${DATA_DIR}/soc2.db" ]; then
+          python3 scripts/generate_compliance_report.py \
+            "${DATA_DIR}/soc2.db" \
+            "${DATA_DIR}/report_soc2.md"
+          echo "✅ SOC 2レポート生成完了"
+        fi
+
+        echo ""
+        echo "✅ 全コンプライアンスワークフロー完了"
+        echo "出力: ${DATA_DIR}/"
+        ls -lh "${DATA_DIR}/" | grep -v "^total"
