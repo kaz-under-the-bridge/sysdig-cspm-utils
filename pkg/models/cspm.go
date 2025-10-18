@@ -31,52 +31,6 @@ type ComplianceRequirement struct {
 	UpdatedAt           time.Time `json:"updatedAt"`
 }
 
-// InventoryResource represents a resource from Sysdig Inventory API
-type InventoryResource struct {
-	Hash                  string                 `json:"hash"`
-	Name                  string                 `json:"name"`
-	Type                  string                 `json:"type"`
-	Platform              string                 `json:"platform"`
-	Category              string                 `json:"category"`
-	LastSeen              string                 `json:"lastSeen"`
-	Metadata              map[string]interface{} `json:"metadata"`
-	PosturePolicySummary  PolicySummary          `json:"posturePolicySummary"`
-	Labels                []string               `json:"labels"`
-	PostureControlSummary []ControlSummary       `json:"postureControlSummary"`
-	Zones                 []Zone                 `json:"zones"`
-	ResourceOrigin        string                 `json:"resourceOrigin"`
-	ConfigAPIEndpoint     string                 `json:"configApiEndpoint"`
-	CreatedAt             time.Time              `json:"createdAt"`
-	UpdatedAt             time.Time              `json:"updatedAt"`
-}
-
-// PolicySummary represents posture policy summary
-type PolicySummary struct {
-	PassPercentage float64  `json:"passPercentage"`
-	Policies       []Policy `json:"policies"`
-}
-
-// Policy represents a security policy
-type Policy struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	Pass bool   `json:"pass"`
-}
-
-// ControlSummary represents posture control summary
-type ControlSummary struct {
-	Name             string `json:"name"`
-	PolicyID         string `json:"policyId"`
-	FailedControls   int    `json:"failedControls"`
-	AcceptedControls int    `json:"acceptedControls"`
-}
-
-// Zone represents a zone that a resource belongs to
-type Zone struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
-
 // Control represents a control within a compliance requirement
 type Control struct {
 	ID                  string `json:"id"`
@@ -102,6 +56,12 @@ type Control struct {
 type ComplianceResponse struct {
 	Data       []ComplianceRequirement `json:"data"`
 	TotalCount FlexInt                 `json:"totalCount"`
+}
+
+// Zone represents a zone that a resource belongs to
+type Zone struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 // ComplianceRequirementWithControls represents a compliance requirement with its controls
@@ -137,39 +97,39 @@ type Acceptance struct {
 
 // CloudResource represents a resource from Cloud Resources API or Cluster Analysis API
 type CloudResource struct {
-	Hash         string                 `json:"hash"`
-	Name         string                 `json:"name"`
-	Type         string                 `json:"type"`
-	Passed       bool                   `json:"passed"`
+	Hash   string `json:"hash"`
+	Name   string `json:"name"`
+	Type   string `json:"type"`
+	Passed bool   `json:"passed"`
 
 	// Cloud Resources API フィールド（AWS/GCP/Azure）
-	Platform     string                 `json:"platform,omitempty"`
-	Account      string                 `json:"account,omitempty"`
-	Location     string                 `json:"location,omitempty"`
-	Organization string                 `json:"organization,omitempty"`
+	Platform     string `json:"platform,omitempty"`
+	Account      string `json:"account,omitempty"`
+	Location     string `json:"location,omitempty"`
+	Organization string `json:"organization,omitempty"`
 
 	// Cluster Analysis API フィールド（Docker/Linux/K8s）
-	OSName               string `json:"osName,omitempty"`
-	OSImage              string `json:"osImage,omitempty"`
-	ClusterName          string `json:"clusterName,omitempty"`
-	DistributionName     string `json:"distributionName,omitempty"`
-	DistributionVersion  string `json:"distributionVersion,omitempty"`
-	PlatformAccountID    string `json:"platformAccountId,omitempty"`
-	CloudResourceID      string `json:"cloudResourceId,omitempty"`
-	CloudRegion          string `json:"cloudRegion,omitempty"`
+	OSName              string `json:"osName,omitempty"`
+	OSImage             string `json:"osImage,omitempty"`
+	ClusterName         string `json:"clusterName,omitempty"`
+	DistributionName    string `json:"distributionName,omitempty"`
+	DistributionVersion string `json:"distributionVersion,omitempty"`
+	PlatformAccountID   string `json:"platformAccountId,omitempty"`
+	CloudResourceID     string `json:"cloudResourceId,omitempty"`
+	CloudRegion         string `json:"cloudRegion,omitempty"`
 
 	// 共通フィールド
-	Acceptance   *Acceptance            `json:"acceptance"`
-	Zones        []Zone                 `json:"zones"`
-	LastSeenDate string                 `json:"lastSeenDate"`
-	LabelValues  []string               `json:"labelValues,omitempty"`
-	GlobalID     string                 `json:"globalId,omitempty"`
-	AgentTags    []string               `json:"agentTags,omitempty"`
-	ConfigError  string                 `json:"configError,omitempty"`
-	NodesCount   int                    `json:"nodesCount,omitempty"`
+	Acceptance   *Acceptance `json:"acceptance"`
+	Zones        []Zone      `json:"zones"`
+	LastSeenDate string      `json:"lastSeenDate"`
+	LabelValues  []string    `json:"labelValues,omitempty"`
+	GlobalID     string      `json:"globalId,omitempty"`
+	AgentTags    []string    `json:"agentTags,omitempty"`
+	ConfigError  string      `json:"configError,omitempty"`
+	NodesCount   int         `json:"nodesCount,omitempty"`
 
-	CreatedAt    time.Time              `json:"createdAt,omitempty"`
-	UpdatedAt    time.Time              `json:"updatedAt,omitempty"`
+	CreatedAt time.Time `json:"createdAt,omitempty"`
+	UpdatedAt time.Time `json:"updatedAt,omitempty"`
 }
 
 // GetAcceptanceStatus returns the acceptance status of the resource
@@ -187,12 +147,6 @@ func (r *CloudResource) GetAcceptanceStatus() string {
 type CloudResourceResponse struct {
 	Data       []CloudResource `json:"data"`
 	TotalCount FlexInt         `json:"totalCount"`
-}
-
-// InventoryResponse represents the API response for inventory resources
-type InventoryResponse struct {
-	Data       []InventoryResource `json:"data"`
-	TotalCount FlexInt             `json:"totalCount"`
 }
 
 // FlexInt is a custom type that can unmarshal both string and int values
