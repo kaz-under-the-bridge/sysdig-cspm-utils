@@ -458,3 +458,107 @@ func (c *CSPMClient) GetAllCloudResources(endpoint string, pageSize, batchSize, 
 		TotalCount: totalCount,
 	}, nil
 }
+
+// ListRiskAcceptances retrieves all risk acceptances with automatic pagination
+func (c *CSPMClient) ListRiskAcceptances() ([]models.RiskAcceptance, error) {
+	endpoint := "/api/cspm/v1/compliance/violations/acceptances/search"
+	pageSize := 50
+	apiDelay := 3 // 3秒間隔
+
+	// 最初のページを取得してtotalCountを確認
+	firstRequest := models.RiskAcceptanceSearchRequest{
+		Filter:     "",
+		PageNumber: 1,
+		PageSize:   pageSize,
+		Sort:       "acceptanceDate",
+		OrderBy:    "desc",
+	}
+
+	firstResponse, err := c.searchRiskAcceptances(endpoint, firstRequest)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get first page: %w", err)
+	}
+
+	totalCount := firstResponse.TotalCount
+	totalPages := (totalCount + pageSize - 1) / pageSize
+
+	fmt.Printf("  Total risk acceptances: %d\n", totalCount)
+	fmt.Printf("  Total pages: %d (pageSize: %d)\n", totalPages, pageSize)
+
+	// 全データを格納するスライス
+	allData := make([]models.RiskAcceptance, 0, totalCount)
+	allData = append(allData, firstResponse.Data...)
+
+	if totalPages <= 1 {
+		fmt.Println()
+		return allData, nil
+	}
+
+	// ページ2以降を順次取得（Rate Limit対策で並列処理はしない）
+	for page := 2; page <= totalPages; page++ {
+		request := models.RiskAcceptanceSearchRequest{
+			Filter:     "",
+			PageNumber: page,
+			PageSize:   pageSize,
+			Sort:       "acceptanceDate",
+			OrderBy:    "desc",
+		}
+
+		response, err := c.searchRiskAcceptances(endpoint, request)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get page %d: %w", page, err)
+		}
+
+		allData = append(allData, response.Data...)
+		fmt.Printf("\r  Progress: %d/%d pages processed, %d risk acceptances collected", page, totalPages, len(allData))
+
+		// Rate Limit対策の遅延
+		if page < totalPages {
+			time.Sleep(time.Duration(apiDelay) * time.Second)
+		}
+	}
+
+	fmt.Println() // 改行
+	return allData, nil
+}
+
+// searchRiskAcceptances performs a single risk acceptance search request
+func (c *CSPMClient) searchRiskAcceptances(endpoint string, request models.RiskAcceptanceSearchRequest) (*models.RiskAcceptanceSearchResponse, error) {
+	resp, err := c.Client.MakeRequest("POST", endpoint, request)
+	if err != nil {
+		return nil, fmt.Errorf("failed to search risk acceptances: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("API request failed with status %d", resp.StatusCode)
+	}
+
+	var response models.RiskAcceptanceSearchResponse
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return nil, fmt.Errorf("failed to parse risk acceptance response: %w", err)
+	}
+
+	return &response, nil
+}
+
+// DeleteRiskAcceptance deletes a risk acceptance by ID
+func (c *CSPMClient) DeleteRiskAcceptance(id string) error {
+	endpoint := "/api/cspm/v1/compliance/violations/revoke"
+
+	request := models.RiskAcceptanceDeleteRequest{
+		ID: id,
+	}
+
+	resp, err := c.Client.MakeRequest("POST", endpoint, request)
+	if err != nil {
+		return fmt.Errorf("failed to delete risk acceptance: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("API request failed with status %d", resp.StatusCode)
+	}
+
+	return nil
+}

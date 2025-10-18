@@ -107,6 +107,28 @@ const (
 		UNIQUE(control_id, resource_hash)
 	)`
 
+	createRiskAcceptancesTable = `
+	CREATE TABLE IF NOT EXISTS risk_acceptances (
+		id TEXT PRIMARY KEY,
+		tenant_id TEXT NOT NULL,
+		control_id TEXT NOT NULL,
+		description TEXT,
+		reason TEXT,
+		acceptance_date TEXT NOT NULL,
+		username TEXT,
+		user_display_name TEXT,
+		filter TEXT,
+		zone_id TEXT,
+		accept_period TEXT,
+		expires_at TEXT,
+		is_expired BOOLEAN DEFAULT 0,
+		is_system BOOLEAN DEFAULT 0,
+		type INTEGER,
+		source_id TEXT,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	)`
+
 	// Indexes for efficient searching
 	createIndexes = `
 	-- コンプライアンス要件のインデックス
@@ -129,7 +151,13 @@ const (
 	-- Control-Resource関連のインデックス
 	CREATE INDEX IF NOT EXISTS idx_rel_control ON control_resource_relations(control_id);
 	CREATE INDEX IF NOT EXISTS idx_rel_resource ON control_resource_relations(resource_hash);
-	CREATE INDEX IF NOT EXISTS idx_rel_status ON control_resource_relations(acceptance_status);`
+	CREATE INDEX IF NOT EXISTS idx_rel_status ON control_resource_relations(acceptance_status);
+
+	-- Risk Acceptancesのインデックス
+	CREATE INDEX IF NOT EXISTS idx_risk_control_id ON risk_acceptances(control_id);
+	CREATE INDEX IF NOT EXISTS idx_risk_zone_id ON risk_acceptances(zone_id) WHERE zone_id IS NOT NULL;
+	CREATE INDEX IF NOT EXISTS idx_risk_tenant_id ON risk_acceptances(tenant_id);
+	CREATE INDEX IF NOT EXISTS idx_risk_is_expired ON risk_acceptances(is_expired);`
 )
 
 // Database represents a SQLite database connection with CSPM schema
@@ -160,6 +188,7 @@ func (d *Database) initialize() error {
 		createControlsTable,
 		createCloudResourcesTable,
 		createControlResourceRelationsTable,
+		createRiskAcceptancesTable,
 		createIndexes,
 	}
 

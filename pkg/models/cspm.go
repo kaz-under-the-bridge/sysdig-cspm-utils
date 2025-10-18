@@ -181,3 +181,43 @@ func (fi *FlexInt) UnmarshalJSON(data []byte) error {
 func (fi FlexInt) Int() int {
 	return int(fi)
 }
+
+// RiskAcceptance represents a CSPM compliance violation risk acceptance
+type RiskAcceptance struct {
+	ID              string `json:"id"`
+	TenantID        string `json:"tenantId"`
+	ControlID       string `json:"controlId"`
+	Description     string `json:"description"`
+	Reason          string `json:"reason"`
+	AcceptanceDate  string `json:"acceptanceDate"`
+	Username        string `json:"username"`
+	UserDisplayName string `json:"userDisplayName"`
+	Filter          string `json:"filter"`
+	ZoneID          string `json:"zoneId"`
+	AcceptPeriod    string `json:"acceptPeriod"`
+	ExpiresAt       string `json:"expiresAt"`
+	IsExpired       bool   `json:"isExpired"`
+	IsSystem        bool   `json:"isSystem"`
+	Type            int    `json:"type"`
+	SourceID        string `json:"sourceId"`
+}
+
+// RiskAcceptanceSearchRequest represents the request payload for searching risk acceptances
+type RiskAcceptanceSearchRequest struct {
+	Filter     string `json:"filter"`
+	PageNumber int    `json:"pageNumber"`
+	PageSize   int    `json:"pageSize"`
+	Sort       string `json:"sort"`
+	OrderBy    string `json:"orderBy"`
+}
+
+// RiskAcceptanceSearchResponse represents the API response for risk acceptance search
+type RiskAcceptanceSearchResponse struct {
+	Data       []RiskAcceptance `json:"data"`
+	TotalCount int              `json:"totalCount"`
+}
+
+// RiskAcceptanceDeleteRequest represents the request payload for deleting a risk acceptance
+type RiskAcceptanceDeleteRequest struct {
+	ID string `json:"id"`
+}

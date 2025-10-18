@@ -433,3 +433,138 @@ func findSubstring(haystack, needle string) bool {
 	}
 	return false
 }
+
+// SaveRiskAcceptances saves risk acceptances to the database
+func (d *Database) SaveRiskAcceptances(acceptances []models.RiskAcceptance) error {
+	tx, err := d.db.Begin()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	stmt, err := tx.Prepare(`
+		INSERT OR REPLACE INTO risk_acceptances (
+			id, tenant_id, control_id, description, reason,
+			acceptance_date, username, user_display_name,
+			filter, zone_id, accept_period, expires_at,
+			is_expired, is_system, type, source_id
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	`)
+	if err != nil {
+		return fmt.Errorf("failed to prepare statement: %w", err)
+	}
+	defer stmt.Close()
+
+	for _, acc := range acceptances {
+		_, err = stmt.Exec(
+			acc.ID,
+			acc.TenantID,
+			acc.ControlID,
+			nullString(acc.Description),
+			nullString(acc.Reason),
+			acc.AcceptanceDate,
+			nullString(acc.Username),
+			nullString(acc.UserDisplayName),
+			nullString(acc.Filter),
+			nullString(acc.ZoneID),
+			nullString(acc.AcceptPeriod),
+			nullString(acc.ExpiresAt),
+			acc.IsExpired,
+			acc.IsSystem,
+			acc.Type,
+			nullString(acc.SourceID),
+		)
+		if err != nil {
+			return fmt.Errorf("failed to insert risk acceptance %s: %w", acc.ID, err)
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetRiskAcceptances retrieves risk acceptances from the database
+func (d *Database) GetRiskAcceptances(controlID string) ([]models.RiskAcceptance, error) {
+	query := `
+		SELECT id, tenant_id, control_id, description, reason,
+		       acceptance_date, username, user_display_name,
+		       filter, zone_id, accept_period, expires_at,
+		       is_expired, is_system, type, source_id
+		FROM risk_acceptances`
+
+	args := []interface{}{}
+
+	if controlID != "" {
+		query += " WHERE control_id = ?"
+		args = append(args, controlID)
+	}
+
+	query += " ORDER BY acceptance_date DESC"
+
+	rows, err := d.db.Query(query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query risk acceptances: %w", err)
+	}
+	defer rows.Close()
+
+	var acceptances []models.RiskAcceptance
+	for rows.Next() {
+		var acc models.RiskAcceptance
+		var description, reason, username, userDisplayName, filter, zoneID, acceptPeriod, expiresAt, sourceID sql.NullString
+
+		err = rows.Scan(
+			&acc.ID,
+			&acc.TenantID,
+			&acc.ControlID,
+			&description,
+			&reason,
+			&acc.AcceptanceDate,
+			&username,
+			&userDisplayName,
+			&filter,
+			&zoneID,
+			&acceptPeriod,
+			&expiresAt,
+			&acc.IsExpired,
+			&acc.IsSystem,
+			&acc.Type,
+			&sourceID,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan risk acceptance: %w", err)
+		}
+
+		// Convert sql.NullString to string
+		acc.Description = description.String
+		acc.Reason = reason.String
+		acc.Username = username.String
+		acc.UserDisplayName = userDisplayName.String
+		acc.Filter = filter.String
+		acc.ZoneID = zoneID.String
+		acc.AcceptPeriod = acceptPeriod.String
+		acc.ExpiresAt = expiresAt.String
+		acc.SourceID = sourceID.String
+
+		acceptances = append(acceptances, acc)
+	}
+
+	return acceptances, nil
+}
+
+// DeleteRiskAcceptanceFromDB deletes a risk acceptance from the database by ID
+func (d *Database) DeleteRiskAcceptanceFromDB(id string) error {
+	result, err := d.db.Exec("DELETE FROM risk_acceptances WHERE id = ?", id)
+	if err != nil {
+		return fmt.Errorf("failed to delete risk acceptance %s: %w", id, err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("risk acceptance %s not found", id)
+	}
+
+	return nil
+}

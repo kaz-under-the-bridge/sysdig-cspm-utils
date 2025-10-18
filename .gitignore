@@ -40,8 +40,6 @@ build/
 # .idea/
 # .vscode/
 
-task.md
-python-examples
 
 # Data files
 data/
@@ -61,11 +59,13 @@ test_exploitable_*.db
 bin/
 logs/
 
-response_sample
-
-task_process.md
-
 # Python仮想環境
 venv/
 *.pyc
 __pycache__/
+
+# local
+task.md
+python-examples
+response_sample
+task_process.md

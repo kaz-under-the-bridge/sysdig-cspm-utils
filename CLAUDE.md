@@ -289,6 +289,141 @@ task pre-commit
 - モックサーバー: `internal/testutil/mock_server.go`
 - フィクスチャ管理: `internal/testutil/fixtures.go`
 
+## リスク受け入れ（Risk Acceptance）の扱い
+
+### 概要
+
+Sysdig CSPMのリスク受け入れ機能により、コンプライアンス違反を意図的に受け入れることができます。このプロジェクトでは以下の3つの機能を提供しています：
+
+```bash
+# リスク受け入れデータの収集
+./bin/cspm-utils -command risk-collect -db data/risk_acceptances.db
+
+# リスク受け入れ一覧表示
+./bin/cspm-utils -command risk-list -db data/risk_acceptances.db
+./bin/cspm-utils -command risk-list -db data/risk_acceptances.db -control-id "16027"
+
+# リスク受け入れの削除（APIとDBの両方から削除）
+./bin/cspm-utils -command risk-delete -db data/risk_acceptances.db -acceptance-id "abc123..."
+```
+
+### リスク受け入れの分類
+
+リスク受け入れは **受け入れ理由 (reason)** によって以下のように分類されます：
+
+#### 1. Sysdig Accepted Risk（Sysdigシステム受け入れ）
+
+**特徴:**
+- **Username**: "Sysdig"（システムによる自動生成）
+- **Acceptance Date**: 0（システム生成時から存在）
+- **目的**: Sysdigプラットフォーム自体の正常な動作に必要なリスクの受け入れ
+
+**主な対象リソース:**
+- **Kubernetesシステムリソース**: `kube-system`, `kube-public`, `kube-node-lease` namespace内のワークロード
+- **Sysdig自社製品コンポーネント**: `name contains "sysdig"`パターンのリソース
+- **クラウドプロバイダー管理リソース**: EKSデフォルトユーザー（`eks:`プレフィックス）など
+
+**具体例:**
+
+```plaintext
+Control 36: Kubernetesデフォルトワークロード
+  Filter: namespace in ("kube-node-lease", "kube-public", "kube-system")
+          and kind in ("DaemonSet", "Deployment", "Service", "Job", "CronJob")
+  理由: これらはKubernetesプラットフォーム自体またはクラウドプロバイダーによって
+        管理されており、クラスタ運用にとって重要。安定性と互換性を優先するため、
+        厳格なセキュリティベンチマークの対象外とする。
+
+Control 2012: Sysdigコンポーネントの特権機能
+  Filter: name contains "sysdig"
+  理由: 重要なランタイムセキュリティ情報を取得するために、
+        Sysdigコンポーネントには特別な機能（Capabilities）が必要。
+```
+
+#### 2. Risk Owned（ユーザー組織による受け入れ）
+
+**特徴:**
+- **Username**: 実際のユーザー名（例: `john.doe@example.com`）
+- **Acceptance Date**: 実際の受け入れ日時
+- **目的**: 組織のビジネス要件により意図的に受け入れるリスク
+
+**主な対象:**
+- 特定のIAMユーザー（外部サービス連携用など）
+- S3 MFA Delete無効化（運用上の理由）
+- 特定のAWSリージョン（未使用リージョン）
+
+#### 3. Risk Transferred / Custom（その他）
+
+- **Risk Transferred**: リスクを第三者に移転
+- **Custom**: カスタム理由
+
+### 分析・レポート生成時の扱い
+
+**重要**: リスク受け入れデータを分析・レポート生成する際は、以下のルールに従うこと：
+
+#### ✅ 除外対象（Sysdig Accepted Risk）
+
+```sql
+-- 分析から除外するリスク受け入れ
+SELECT * FROM risk_acceptances
+WHERE reason = 'Sysdig Accepted Risk'
+```
+
+**除外理由:**
+- Sysdigプラットフォームの正常動作に必要
+- ユーザー組織の判断や責任によるものではない
+- システム自動生成のため、レビュー対象外
+
+#### ✅ 分析・表示対象
+
+```sql
+-- 分析対象とするリスク受け入れ
+SELECT * FROM risk_acceptances
+WHERE reason IN ('Risk Owned', 'Risk Transferred', 'Custom')
+```
+
+**これらは:**
+- ユーザー組織が意図的に受け入れたリスク
+- 定期的なレビューが必要
+- コンプライアンス監査の対象
+
+### データ統計（参考）
+
+実際の運用環境での統計例:
+
+```
+総数: 691件
+├─ Sysdig Accepted Risk: 382件 (55.3%) ← 分析除外
+├─ Risk Owned: 303件 (43.8%)           ← 分析対象
+├─ Risk Transferred: 4件 (0.6%)        ← 分析対象
+└─ Custom: 2件 (0.3%)                   ← 分析対象
+```
+
+### フィルタータイプ別分類
+
+リスク受け入れの **filter** フィールドにより、受け入れ範囲を分類できます：
+
+1. **全リソース対象** (filter = "" または NULL)
+   - そのコントロールの全リソースが受け入れ対象
+   - 例: 特定のコントロールを組織全体で無効化
+
+2. **個別リソース指定** (name in ("リソース名"))
+   - 特定の名前付きリソースのみ
+   - 例: `name in ("analytics-service-user")`
+
+3. **パターンマッチ** (name contains "パターン")
+   - 名前パターンに一致するリソース
+   - 例: `name contains "sysdig"`
+
+4. **Kubernetes関連** (namespace in (...) and kind in (...))
+   - Kubernetes特有の条件指定
+   - 例: `namespace in ("kube-system") and kind in ("DaemonSet")`
+
+### API仕様
+
+- **検索API**: `POST /api/cspm/v1/compliance/violations/acceptances/search`
+- **削除API**: `POST /api/cspm/v1/compliance/violations/revoke`
+- 詳細: [Risk Acceptance API](docs/sysdig-api-ref/cspm-risk-acceptance.md)
+
 ## トラブルシューティング
 
 ### よくある問題と解決方法
