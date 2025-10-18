@@ -56,68 +56,68 @@ func TestGetCloudResources(t *testing.T) {
 	client := NewCSPMClient(server.URL, "test-token")
 
 	tests := []struct {
-		name         string
-		endpoint     string
-		pageNumber   int
-		pageSize     int
-		expectError  bool
-		expectData   bool
+		name        string
+		endpoint    string
+		pageNumber  int
+		pageSize    int
+		expectError bool
+		expectData  bool
 	}{
 		{
-			name:         "control 16071 - page 1",
-			endpoint:     "/api/cspm/v1/cloud/resources?controlId=16071",
-			pageNumber:   1,
-			pageSize:     50,
-			expectError:  false,
-			expectData:   true,
+			name:        "control 16071 - page 1",
+			endpoint:    "/api/cspm/v1/cloud/resources?controlId=16071",
+			pageNumber:  1,
+			pageSize:    50,
+			expectError: false,
+			expectData:  true,
 		},
 		{
-			name:         "control 16071 - page 2",
-			endpoint:     "/api/cspm/v1/cloud/resources?controlId=16071",
-			pageNumber:   2,
-			pageSize:     50,
-			expectError:  false,
-			expectData:   true,
+			name:        "control 16071 - page 2",
+			endpoint:    "/api/cspm/v1/cloud/resources?controlId=16071",
+			pageNumber:  2,
+			pageSize:    50,
+			expectError: false,
+			expectData:  true,
 		},
 		{
-			name:         "control 16027 - S3 MFA Delete",
-			endpoint:     "/api/cspm/v1/cloud/resources?controlId=16027",
-			pageNumber:   1,
-			pageSize:     50,
-			expectError:  false,
-			expectData:   true,
+			name:        "control 16027 - S3 MFA Delete",
+			endpoint:    "/api/cspm/v1/cloud/resources?controlId=16027",
+			pageNumber:  1,
+			pageSize:    50,
+			expectError: false,
+			expectData:  true,
 		},
 		{
-			name:         "control 16026 - S3 Versioning",
-			endpoint:     "/api/cspm/v1/cloud/resources?controlId=16026",
-			pageNumber:   1,
-			pageSize:     50,
-			expectError:  false,
-			expectData:   true,
+			name:        "control 16026 - S3 Versioning",
+			endpoint:    "/api/cspm/v1/cloud/resources?controlId=16026",
+			pageNumber:  1,
+			pageSize:    50,
+			expectError: false,
+			expectData:  true,
 		},
 		{
-			name:         "control 16018 - IAM Policy",
-			endpoint:     "/api/cspm/v1/cloud/resources?controlId=16018",
-			pageNumber:   1,
-			pageSize:     50,
-			expectError:  false,
-			expectData:   true,
+			name:        "control 16018 - IAM Policy",
+			endpoint:    "/api/cspm/v1/cloud/resources?controlId=16018",
+			pageNumber:  1,
+			pageSize:    50,
+			expectError: false,
+			expectData:  true,
 		},
 		{
-			name:         "unknown control - should return empty",
-			endpoint:     "/api/cspm/v1/cloud/resources?controlId=99999",
-			pageNumber:   1,
-			pageSize:     50,
-			expectError:  false,
-			expectData:   false,
+			name:        "unknown control - should return empty",
+			endpoint:    "/api/cspm/v1/cloud/resources?controlId=99999",
+			pageNumber:  1,
+			pageSize:    50,
+			expectError: false,
+			expectData:  false,
 		},
 		{
-			name:         "missing controlId - should error",
-			endpoint:     "/api/cspm/v1/cloud/resources",
-			pageNumber:   1,
-			pageSize:     50,
-			expectError:  true,
-			expectData:   false,
+			name:        "missing controlId - should error",
+			endpoint:    "/api/cspm/v1/cloud/resources",
+			pageNumber:  1,
+			pageSize:    50,
+			expectError: true,
+			expectData:  false,
 		},
 	}
 
