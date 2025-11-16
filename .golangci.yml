@@ -1,5 +1,4 @@
 # golangci-lint設定（緩め - PR段階での基本的なチェックのみ）
-version: '2'
 run:
   timeout: 5m
   tests: false  # テストファイルをスキャンから除外
