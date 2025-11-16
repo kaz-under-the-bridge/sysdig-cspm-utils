@@ -7,7 +7,10 @@
     "code_blocks": false,
     "tables": false
   },
+  "MD022": false,
   "MD024": { "allow_different_nesting": true },
+  "MD031": false,
+  "MD032": false,
   "MD033": {
     "allowed_elements": [
       "details",
