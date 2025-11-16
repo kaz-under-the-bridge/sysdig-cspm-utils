@@ -20,17 +20,17 @@ func NewTableWriter(writer io.Writer) *TableWriter {
 // WriteVulnerabilities writes vulnerability information - simplified for V2 API
 func (tw *TableWriter) WriteVulnerabilities(vulnerabilities []sysdig.Vulnerability) error {
 	if len(vulnerabilities) == 0 {
-		fmt.Fprintln(tw.writer, "No vulnerabilities found.")
+		_, _ = fmt.Fprintln(tw.writer, "No vulnerabilities found.")
 		return nil
 	}
 
-	fmt.Fprintf(tw.writer, "Found %d vulnerabilities\n", len(vulnerabilities))
+	_, _ = fmt.Fprintf(tw.writer, "Found %d vulnerabilities\n", len(vulnerabilities))
 	for i, vuln := range vulnerabilities {
 		fixedVersion := "none"
 		if vuln.FixedInVersion != nil {
 			fixedVersion = *vuln.FixedInVersion
 		}
-		fmt.Fprintf(tw.writer, "%d. %s [%s] - %s (Fixable: %t, Fixed in: %s)\n",
+		_, _ = fmt.Fprintf(tw.writer, "%d. %s [%s] - %s (Fixable: %t, Fixed in: %s)\n",
 			i+1, vuln.Vuln.Name, vuln.Vuln.SeverityString(),
 			vuln.Package.Name, vuln.Vuln.Fixable, fixedVersion)
 	}
@@ -55,12 +55,12 @@ func (tw *TableWriter) WriteSummary(vulnerabilities []sysdig.Vulnerability) erro
 		}
 	}
 
-	fmt.Fprintf(tw.writer, "Vulnerability Summary:\n")
-	fmt.Fprintf(tw.writer, "Total: %d\n", len(vulnerabilities))
-	fmt.Fprintf(tw.writer, "Fixable: %d\n", fixableCount)
-	fmt.Fprintf(tw.writer, "By Severity:\n")
+	_, _ = fmt.Fprintf(tw.writer, "Vulnerability Summary:\n")
+	_, _ = fmt.Fprintf(tw.writer, "Total: %d\n", len(vulnerabilities))
+	_, _ = fmt.Fprintf(tw.writer, "Fixable: %d\n", fixableCount)
+	_, _ = fmt.Fprintf(tw.writer, "By Severity:\n")
 	for severity, count := range severityCount {
-		fmt.Fprintf(tw.writer, "  %s: %d\n", severity, count)
+		_, _ = fmt.Fprintf(tw.writer, "  %s: %d\n", severity, count)
 	}
 
 	return nil
@@ -68,6 +68,6 @@ func (tw *TableWriter) WriteSummary(vulnerabilities []sysdig.Vulnerability) erro
 
 // WriteAWSResourceTable writes AWS resources with vulnerabilities - not available in V2 API
 func (tw *TableWriter) WriteAWSResourceTable(vulnerabilities []sysdig.Vulnerability) error {
-	fmt.Fprintln(tw.writer, "AWS Resource view not available in V2 API")
+	_, _ = fmt.Fprintln(tw.writer, "AWS Resource view not available in V2 API")
 	return tw.WriteVulnerabilities(vulnerabilities)
 }

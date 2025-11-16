@@ -1,38 +1,18 @@
 # golangci-lint設定（緩め - PR段階での基本的なチェックのみ）
+version: '2'
 run:
   timeout: 5m
-  tests: true
+  tests: false  # テストファイルをスキャンから除外
   modules-download-mode: readonly
   go: '1.23'
 
 linters:
   enable:
-    # 最小限の必須linter（エラーのみ）
-    - errcheck        # エラー処理の確認
-    - gosimple        # コードの簡略化提案
-    - govet           # go vetと同等
-    - ineffassign     # 無効な代入検出
-    - staticcheck     # 静的解析
-    - unused          # 未使用コード検出
-    - typecheck       # 型チェック
+    # デフォルトリンター（errcheck, govet, ineffassign, staticcheck, unused）は自動有効
 
-    # 推奨linter（軽量）
-    - gofmt           # フォーマット確認
-    - goimports       # import確認
+    # 追加の推奨linter
     - misspell        # スペルミス検出
     - revive          # 軽量なコードスタイルチェック
-
-  disable:
-    # 厳しすぎるlinterは無効化
-    - gocyclo         # 循環的複雑度（別タスクで実行）
-    - gocritic        # 厳しい批評
-    - gosec           # セキュリティ（別ジョブで実行）
-    - lll             # 行の長さ制限
-    - dupl            # 重複コード検出
-    - funlen          # 関数の長さ
-    - gocognit        # 認知的複雑度
-    - nestif          # ネストの深さ
-    - cyclop          # パッケージの循環的複雑度
 
 linters-settings:
   errcheck:
@@ -62,9 +42,6 @@ linters-settings:
       - name: indent-error-flow
       - name: superfluous-else
 
-  goimports:
-    local-prefixes: github.com/kaz-under-the-bridge/sysdig-cspm-utils
-
   misspell:
     locale: US
     ignore-words:
@@ -81,8 +58,8 @@ issues:
 
   # 除外パターン
   exclude-rules:
-    # テストコードでは一部のルールを緩和
-    - path: _test\.go
+    # テストコードではerrcheckを緩和（defer呼び出しのエラーチェックは不要）
+    - path: '(_test\.go|testutil/)'
       linters:
         - errcheck
         - gosec

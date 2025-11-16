@@ -14,7 +14,7 @@ func (d *Database) SaveComplianceRequirements(requirements []models.ComplianceRe
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	stmt, err := tx.Prepare(`
 		INSERT OR REPLACE INTO compliance_requirements (
@@ -26,7 +26,7 @@ func (d *Database) SaveComplianceRequirements(requirements []models.ComplianceRe
 	if err != nil {
 		return fmt.Errorf("failed to prepare statement: %w", err)
 	}
-	defer stmt.Close()
+	defer func() { _ = stmt.Close() }()
 
 	for _, req := range requirements {
 		_, err = stmt.Exec(
@@ -71,7 +71,7 @@ func (d *Database) GetComplianceViolations(policyType string, platform string) (
 	if err != nil {
 		return nil, fmt.Errorf("failed to query compliance violations: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var violations []models.ComplianceRequirement
 	for rows.Next() {
@@ -97,7 +97,7 @@ func (d *Database) SaveComplianceRequirementsWithControls(requirements []models.
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	// Prepare statements
 	reqStmt, err := tx.Prepare(`
@@ -109,7 +109,7 @@ func (d *Database) SaveComplianceRequirementsWithControls(requirements []models.
 	if err != nil {
 		return fmt.Errorf("failed to prepare requirement statement: %w", err)
 	}
-	defer reqStmt.Close()
+	defer func() { _ = reqStmt.Close() }()
 
 	ctrlStmt, err := tx.Prepare(`
 		INSERT OR REPLACE INTO controls (
@@ -121,7 +121,7 @@ func (d *Database) SaveComplianceRequirementsWithControls(requirements []models.
 	if err != nil {
 		return fmt.Errorf("failed to prepare control statement: %w", err)
 	}
-	defer ctrlStmt.Close()
+	defer func() { _ = ctrlStmt.Close() }()
 
 	// Insert requirements and controls
 	for _, req := range requirements {
@@ -186,7 +186,7 @@ func (d *Database) SaveCloudResources(resources []models.CloudResource) error {
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	stmt, err := tx.Prepare(`
 		INSERT OR REPLACE INTO cloud_resources (
@@ -199,7 +199,7 @@ func (d *Database) SaveCloudResources(resources []models.CloudResource) error {
 	if err != nil {
 		return fmt.Errorf("failed to prepare statement: %w", err)
 	}
-	defer stmt.Close()
+	defer func() { _ = stmt.Close() }()
 
 	for _, res := range resources {
 		// Serialize JSON fields
@@ -254,7 +254,7 @@ func (d *Database) SaveControlResourceRelations(controlID string, resources []mo
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	stmt, err := tx.Prepare(`
 		INSERT OR REPLACE INTO control_resource_relations (
@@ -264,7 +264,7 @@ func (d *Database) SaveControlResourceRelations(controlID string, resources []mo
 	if err != nil {
 		return fmt.Errorf("failed to prepare statement: %w", err)
 	}
-	defer stmt.Close()
+	defer func() { _ = stmt.Close() }()
 
 	for _, res := range resources {
 		acceptanceStatus := res.GetAcceptanceStatus()
@@ -440,7 +440,7 @@ func (d *Database) SaveRiskAcceptances(acceptances []models.RiskAcceptance) erro
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	stmt, err := tx.Prepare(`
 		INSERT OR REPLACE INTO risk_acceptances (
@@ -453,7 +453,7 @@ func (d *Database) SaveRiskAcceptances(acceptances []models.RiskAcceptance) erro
 	if err != nil {
 		return fmt.Errorf("failed to prepare statement: %w", err)
 	}
-	defer stmt.Close()
+	defer func() { _ = stmt.Close() }()
 
 	for _, acc := range acceptances {
 		_, err = stmt.Exec(
@@ -504,7 +504,7 @@ func (d *Database) GetRiskAcceptances(controlID string) ([]models.RiskAcceptance
 	if err != nil {
 		return nil, fmt.Errorf("failed to query risk acceptances: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var acceptances []models.RiskAcceptance
 	for rows.Next() {

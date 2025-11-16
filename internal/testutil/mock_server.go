@@ -44,14 +44,14 @@ func NewMockServer(config *MockServerConfig) *httptest.Server {
 		// 認証チェック
 		if config.UnauthorizedResponse {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(`{"message": "unauthorized"}`))
+			_, _ = w.Write([]byte(`{"message": "unauthorized"}`))
 			return
 		}
 
 		// レート制限チェック
 		if config.RateLimitResponse {
 			w.WriteHeader(http.StatusTooManyRequests)
-			w.Write([]byte(`{"message": "rate limit exceeded"}`))
+			_, _ = w.Write([]byte(`{"message": "rate limit exceeded"}`))
 			return
 		}
 
@@ -59,7 +59,7 @@ func NewMockServer(config *MockServerConfig) *httptest.Server {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(`{"message": "missing authorization header"}`))
+			_, _ = w.Write([]byte(`{"message": "missing authorization header"}`))
 			return
 		}
 
@@ -78,7 +78,7 @@ func NewMockServer(config *MockServerConfig) *httptest.Server {
 
 		default:
 			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte(`{"message": "endpoint not found"}`))
+			_, _ = w.Write([]byte(`{"message": "endpoint not found"}`))
 		}
 	})
 
@@ -104,7 +104,7 @@ func handleComplianceRequirements(w http.ResponseWriter, r *http.Request, config
 	// ページ範囲チェック
 	if pageNumber > config.CompliancePageCount {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"data":[],"totalCount":"40"}`))
+		_, _ = w.Write([]byte(`{"data":[],"totalCount":"40"}`))
 		return
 	}
 
@@ -113,12 +113,12 @@ func handleComplianceRequirements(w http.ResponseWriter, r *http.Request, config
 	data, err := LoadFixture(fixtureFile)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(fmt.Sprintf(`{"message": "failed to load fixture: %v"}`, err)))
+		_, _ = w.Write([]byte(fmt.Sprintf(`{"message": "failed to load fixture: %v"}`, err)))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(data)
+	_, _ = w.Write(data)
 }
 
 // handleCloudResources handles /api/cspm/v1/cloud/resources
@@ -133,7 +133,7 @@ func handleCloudResources(w http.ResponseWriter, r *http.Request, config *MockSe
 	// 必須パラメータチェック
 	if controlID == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(`{"message": "controlId parameter is required"}`))
+		_, _ = w.Write([]byte(`{"message": "controlId parameter is required"}`))
 		return
 	}
 
@@ -148,7 +148,7 @@ func handleCloudResources(w http.ResponseWriter, r *http.Request, config *MockSe
 	// ページ範囲チェック
 	if pageNumber > config.CloudResourcesPageCount {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"data":[],"totalCount":0}`))
+		_, _ = w.Write([]byte(`{"data":[],"totalCount":0}`))
 		return
 	}
 
@@ -175,7 +175,7 @@ func handleCloudResources(w http.ResponseWriter, r *http.Request, config *MockSe
 	default:
 		// 未知のコントロールIDの場合は空レスポンス
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"data":[],"totalCount":0}`))
+		_, _ = w.Write([]byte(`{"data":[],"totalCount":0}`))
 		return
 	}
 
@@ -183,12 +183,12 @@ func handleCloudResources(w http.ResponseWriter, r *http.Request, config *MockSe
 	data, err := LoadFixture(fixtureFile)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(fmt.Sprintf(`{"message": "failed to load fixture: %v"}`, err)))
+		_, _ = w.Write([]byte(fmt.Sprintf(`{"message": "failed to load fixture: %v"}`, err)))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(data)
+	_, _ = w.Write(data)
 }
 
 // handleClusterAnalysisResources handles /api/cspm/v1/clusteranalysis/resources
@@ -202,7 +202,7 @@ func handleClusterAnalysisResources(w http.ResponseWriter, r *http.Request, conf
 	// 必須パラメータチェック
 	if controlID == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(`{"message": "controlId parameter is required"}`))
+		_, _ = w.Write([]byte(`{"message": "controlId parameter is required"}`))
 		return
 	}
 
@@ -216,7 +216,7 @@ func handleClusterAnalysisResources(w http.ResponseWriter, r *http.Request, conf
 	default:
 		// 未知のコントロールIDの場合は空レスポンス
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"data":[],"totalCount":0}`))
+		_, _ = w.Write([]byte(`{"data":[],"totalCount":0}`))
 		return
 	}
 
@@ -224,10 +224,10 @@ func handleClusterAnalysisResources(w http.ResponseWriter, r *http.Request, conf
 	data, err := LoadFixture(fixtureFile)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(fmt.Sprintf(`{"message": "failed to load fixture: %v"}`, err)))
+		_, _ = w.Write([]byte(fmt.Sprintf(`{"message": "failed to load fixture: %v"}`, err)))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(data)
+	_, _ = w.Write(data)
 }

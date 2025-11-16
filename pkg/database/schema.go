@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	// SQLite3ドライバーを読み込む
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -174,7 +175,7 @@ func NewDatabase(dbPath string) (*Database, error) {
 
 	database := &Database{db: db}
 	if err := database.initialize(); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("failed to initialize database: %w", err)
 	}
 
