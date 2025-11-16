@@ -318,13 +318,14 @@ tasks:
           echo "エラー: AWS CIS Benchmarkデータが見つかりません。先に 'task workflow-aws' を実行してください。"
           exit 1
         fi
+        OUTPUT_FILE="data/report_aws_$(date +%Y%m%d_%H%M%S).md"
         python3 scripts/generate_compliance_report.py \
-          --db "$LATEST_DB" \
-          --output "data/report_aws_$(date +%Y%m%d_%H%M%S).md" \
+          "$LATEST_DB" \
+          "$OUTPUT_FILE" \
           --severity high \
           --mode detail \
           --sort-by violations
-        echo "レポート生成完了: data/report_aws_$(date +%Y%m%d_%H%M%S).md"
+        echo "レポート生成完了: $OUTPUT_FILE"
 
   report-gcp:
     desc: 既存のGCP CIS Benchmarkデータベースから再レポート生成（最新DBを使用）
@@ -335,13 +336,14 @@ tasks:
           echo "エラー: GCP CIS Benchmarkデータが見つかりません。先に 'task workflow-gcp' を実行してください。"
           exit 1
         fi
+        OUTPUT_FILE="data/report_gcp_$(date +%Y%m%d_%H%M%S).md"
         python3 scripts/generate_compliance_report.py \
-          --db "$LATEST_DB" \
-          --output "data/report_gcp_$(date +%Y%m%d_%H%M%S).md" \
+          "$LATEST_DB" \
+          "$OUTPUT_FILE" \
           --severity high \
           --mode detail \
           --sort-by violations
-        echo "レポート生成完了: data/report_gcp_$(date +%Y%m%d_%H%M%S).md"
+        echo "レポート生成完了: $OUTPUT_FILE"
 
   report-soc2:
     desc: 既存のSOC 2データベースから再レポート生成（最新DBを使用）
@@ -352,13 +354,14 @@ tasks:
           echo "エラー: SOC 2データが見つかりません。先に 'task workflow-soc2' を実行してください。"
           exit 1
         fi
+        OUTPUT_FILE="data/report_soc2_$(date +%Y%m%d_%H%M%S).md"
         python3 scripts/generate_compliance_report.py \
-          --db "$LATEST_DB" \
-          --output "data/report_soc2_$(date +%Y%m%d_%H%M%S).md" \
+          "$LATEST_DB" \
+          "$OUTPUT_FILE" \
           --severity high \
           --mode detail \
           --sort-by violations
-        echo "レポート生成完了: data/report_soc2_$(date +%Y%m%d_%H%M%S).md"
+        echo "レポート生成完了: $OUTPUT_FILE"
 
   report-aws-custom:
     desc: AWS CIS Benchmarkカスタムレポート生成（オプション指定可能）
@@ -370,8 +373,8 @@ tasks:
           exit 1
         fi
         python3 scripts/generate_compliance_report.py \
-          --db "$LATEST_DB" \
-          --output "{{.OUTPUT | default "data/report_aws_custom.md"}}" \
+          "$LATEST_DB" \
+          "{{.OUTPUT | default "data/report_aws_custom.md"}}" \
           --severity "{{.SEVERITY | default "high"}}" \
           --mode "{{.MODE | default "detail"}}" \
           --sort-by "{{.SORT | default "violations"}}"

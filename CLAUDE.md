@@ -21,62 +21,366 @@ Sysdig CSPMのコンプライアンス結果と違反リソースを管理・分
 4. **データベース管理**: SQLiteによる構造化データストレージと分析機能
 5. **レポート生成**: コンプライアンス違反の分析レポート自動生成
 
-## 最短実行フロー（推奨）
+## クイックスタート
 
-### ワンコマンドでデータ収集＋レポート生成
-
-```bash
-# 全て収集＋レポート生成（AWS CIS + GCP CIS + SOC2）
-task workflow-all
-
-# 個別に収集＋レポート生成
-task workflow-aws     # AWS CISのみ
-task workflow-gcp     # GCP CISのみ
-task workflow-soc2    # SOC2のみ
-```
-
-**自動処理内容:**
-1. 環境変数の読み込み（`.devcontainer/.env`）
-2. バイナリの自動ビルド
-3. タイムスタンプ付きディレクトリの作成
-4. コンプライアンスデータ収集
-5. **同一ディレクトリにデフォルト設定でレポート生成**（High重要度、詳細モード）
-6. 結果サマリー表示
-
-**収集対象:**
-- **aws**: CIS Amazon Web Services Foundations Benchmark v3.0.0
-- **gcp**: CIS Google Cloud Platform Foundation Benchmark v2.0.0
-- **soc2**: SOC 2
-
-### 生成されるファイル
-
-```
-data/YYYYMMDD_HHMMSS/
-  ├── cis_aws.db      # AWS CIS Benchmark結果（データベース）
-  ├── report_aws.md   # AWS CIS Benchmarkレポート（Markdown）
-  ├── cis_gcp.db      # GCP CIS Benchmark結果（データベース）
-  ├── report_gcp.md   # GCP CIS Benchmarkレポート（Markdown）
-  ├── soc2.db         # SOC 2結果（データベース）
-  └── report_soc2.md  # SOC 2レポート（Markdown）
-
-logs/
-  ├── collect_aws_YYYYMMDD_HHMMSS.log   # AWS収集ログ
-  ├── collect_gcp_YYYYMMDD_HHMMSS.log   # GCP収集ログ
-  └── collect_soc2_YYYYMMDD_HHMMSS.log  # SOC2収集ログ
-```
-
-### 既存データベースからのレポート再生成
-
-既にデータベースがある場合、レポートのみ再生成できます：
+### 基本的な使い方
 
 ```bash
-# 既存の最新DBからレポート再生成（別タイムスタンプで生成）
+# データ収集＋レポート生成（ワンコマンド）
+task workflow-aws     # AWS CIS Benchmarkのみ（推奨: まずこれから）
+task workflow-gcp     # GCP CIS Benchmarkのみ
+task workflow-soc2    # SOC 2のみ
+task workflow-all     # 全て実行（AWS + GCP + SOC2）
+
+# 既存DBからレポート再生成
+task report-aws       # 最新のAWS CIS DBから再生成
+task report-gcp       # 最新のGCP CIS DBから再生成
+task report-soc2      # 最新のSOC 2 DBから再生成
+```
+
+**必須環境変数**: `SYSDIG_API_TOKEN`（`.devcontainer/.env`に設定）
+
+**生成される出力**: `data/YYYYMMDD_HHMMSS/` ディレクトリにSQLite DBとMarkdownレポートが生成されます。
+
+詳細な実行手順、オプション、トラブルシューティングは「**レポート作成の詳細手順（技術ガイド）**」セクションを参照してください。
+
+## レポート作成の詳細手順（技術ガイド）
+
+### 実行方法の概要
+
+レポート作成には以下の2つのアプローチがあります：
+
+#### アプローチ1: ワークフローコマンド（推奨）
+
+**使用タイミング**: 既存データがない場合、または最新データを取得したい場合
+
+```bash
+# 個別実行（推奨）
+task workflow-aws     # AWS CIS Benchmarkのみ
+task workflow-gcp     # GCP CIS Benchmarkのみ
+task workflow-soc2    # SOC 2のみ
+
+# 全て一度に実行
+task workflow-all     # AWS + GCP + SOC2
+```
+
+**実行される処理フロー**:
+
+1. **依存関係チェック & ビルド**
+   - `deps: [build]` により `task build` が自動実行される
+   - `CGO_ENABLED=1 go build -o bin/cspm-utils cmd/cspm-utils/main.go`
+   - SQLite3使用のため、CGO必須
+
+2. **タイムスタンプディレクトリ生成**
+   ```bash
+   TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+   DATA_DIR="data/${TIMESTAMP}"
+   ```
+   - 全てのデータが同一ディレクトリに集約される
+   - 例: `data/20251116_195830/`
+
+3. **データ収集スクリプト実行**
+   ```bash
+   ./scripts/collect-compliance.sh [aws|gcp|soc2|all] --output "${DATA_DIR}"
+   ```
+   - Sysdig CSPM V1 APIからコンプライアンス結果を取得
+   - SQLiteデータベースに保存（`cis_aws.db`, `cis_gcp.db`, `soc2.db`）
+   - ログファイル生成: `logs/collect_[type]_${TIMESTAMP}.log`
+   - 環境変数: `SYSDIG_API_TOKEN`（必須）
+
+4. **レポート生成Pythonスクリプト実行**
+   ```bash
+   python3 scripts/generate_compliance_report.py \
+     "${DATA_DIR}/cis_aws.db" \
+     "${DATA_DIR}/report_aws.md"
+   ```
+   - デフォルト設定: `--severity high --mode detail --sort-by violations`
+   - 出力: Markdownフォーマットのレポート
+   - データ収集と同一ディレクトリに出力
+
+5. **結果サマリー表示**
+   ```bash
+   ls -lh "${DATA_DIR}/" | grep -v "^total"
+   ```
+   - 生成されたファイルの一覧とサイズを表示
+
+#### アプローチ2: 既存DBからのレポート再生成
+
+**使用タイミング**: 既にデータベースがあり、異なる設定でレポートを生成したい場合
+
+```bash
+# デフォルト設定（High重要度、詳細モード）
 task report-aws
 task report-gcp
 task report-soc2
 
-# カスタム設定でレポート生成
-task report-aws-custom OUTPUT=custom.md SEVERITY=all MODE=full
+# カスタム設定
+task report-aws-custom OUTPUT=file.md SEVERITY=all MODE=full SORT=severity
+```
+
+**内部処理**:
+
+```bash
+# 最新のDBファイルを自動検索
+LATEST_DB=$(ls -t data/*/cis_aws.db 2>/dev/null | head -n 1)
+
+# レポート生成（別タイムスタンプで生成）
+OUTPUT_FILE="data/report_aws_$(date +%Y%m%d_%H%M%S).md"
+python3 scripts/generate_compliance_report.py \
+  "$LATEST_DB" \
+  "$OUTPUT_FILE" \
+  --severity high \
+  --mode detail \
+  --sort-by violations
+```
+
+### 生成されるファイル構造
+
+```
+プロジェクトルート/
+├── data/
+│   └── 20251116_195830/          # タイムスタンプディレクトリ
+│       ├── cis_aws.db            # AWS CIS Benchmark SQLite DB
+│       ├── report_aws.md         # AWS CISレポート（Markdown）
+│       ├── cis_gcp.db            # GCP CIS Benchmark SQLite DB
+│       ├── report_gcp.md         # GCP CISレポート（Markdown）
+│       ├── soc2.db               # SOC 2 SQLite DB
+│       └── report_soc2.md        # SOC 2レポート（Markdown）
+├── logs/
+│   ├── collect_aws_20251116_195830.log    # AWS収集ログ
+│   ├── collect_gcp_20251116_195830.log    # GCP収集ログ
+│   └── collect_soc2_20251116_195830.log   # SOC2収集ログ
+└── bin/
+    └── cspm-utils                # ビルドされたバイナリ
+```
+
+### レポート生成オプションの詳細
+
+**Pythonスクリプトの引数**:
+
+```bash
+python3 scripts/generate_compliance_report.py \
+  <db_path> <output_path> \
+  [--severity {high,all}] \
+  [--mode {detail,full}] \
+  [--sort-by {violations,name,severity}]
+```
+
+**パラメータ説明**:
+
+| パラメータ | 種別 | 必須 | デフォルト | 説明 |
+|----------|------|------|-----------|------|
+| `db_path` | 位置引数 | ✅ | - | SQLiteデータベースファイルのパス |
+| `output_path` | 位置引数 | ✅ | - | 出力Markdownファイルのパス |
+| `--severity` | オプション | ❌ | `high` | 重要度フィルター: `high`（高のみ）/ `all`（全て） |
+| `--mode` | オプション | ❌ | `detail` | レポートモード: `detail`（詳細のみ）/ `full`（統計+詳細） |
+| `--sort-by` | オプション | ❌ | `violations` | ソート順: `violations`（違反数）/ `name`（名前）/ `severity`（重要度） |
+
+**重要**: `db_path` と `output_path` は位置引数なので、`--db` や `--output` オプションは使用できません。
+
+**レポートモードの違い**:
+
+- **`detail`モード**: 各コントロールの違反詳細をリスト形式で表示
+- **`full`モード**: 以下を含む完全なレポート
+  - トップ10違反コントロール（棒グラフ風表示）
+  - 詳細レポート
+  - 統計情報（総違反数、総リソース数、コントロール数）
+
+### 事前確認チェックリスト
+
+#### 1. 環境変数の設定確認
+
+```bash
+# 必須
+echo $SYSDIG_API_TOKEN
+# 出力: ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# オプション
+echo $SYSDIG_API_URL
+# デフォルト: https://us2.app.sysdig.com
+```
+
+**設定場所**:
+- Dev Container: `.devcontainer/.env`
+- ローカル環境: `~/.bashrc`, `~/.zshrc`, または実行時の環境変数
+
+#### 2. 必要なツールの確認
+
+```bash
+# Task (go-task)
+task --version
+# 出力例: Task version: v3.x.x
+
+# Go 1.23+
+go version
+# 出力例: go version go1.23.x darwin/arm64
+
+# Python 3.x
+python3 --version
+# 出力例: Python 3.11.x
+
+# CGO有効化確認
+go env CGO_ENABLED
+# 出力: 1（有効）
+```
+
+#### 3. ディレクトリ構造の確認
+
+```bash
+# dataディレクトリが存在するか
+ls -la data/
+# .gitkeepが存在すればOK
+
+# logsディレクトリが存在するか
+ls -la logs/
+# 存在しない場合は自動作成される
+```
+
+### トラブルシューティング
+
+#### エラー1: データベースが見つからない
+
+```
+エラー: AWS CIS Benchmarkデータが見つかりません。先に 'task workflow-aws' を実行してください。
+```
+
+**原因**: `data/` ディレクトリ内に対象のDBファイルが存在しない
+
+**解決策**:
+```bash
+# 最初にワークフローコマンドを実行してデータを収集
+task workflow-aws
+```
+
+**確認コマンド**:
+```bash
+# 既存のDBファイルを検索
+find data/ -name "*.db" -type f
+```
+
+#### エラー2: API認証失敗
+
+```
+Error: authentication failed (401 Unauthorized)
+```
+
+**原因**: `SYSDIG_API_TOKEN` が未設定または無効
+
+**解決策**:
+```bash
+# トークンの設定を確認
+echo $SYSDIG_API_TOKEN
+
+# 未設定の場合は設定
+export SYSDIG_API_TOKEN="your-valid-token-here"
+
+# Dev Containerの場合は .devcontainer/.env に追記
+echo 'SYSDIG_API_TOKEN=your-valid-token-here' >> .devcontainer/.env
+```
+
+**トークン取得方法**:
+1. Sysdig UI にログイン
+2. Settings → User Profile → API Token
+3. トークンをコピー
+
+#### エラー3: CGOエラー
+
+```
+# runtime/cgo
+cgo: C compiler "gcc" not found
+```
+
+**原因**: CGOが無効、またはCコンパイラが未インストール
+
+**解決策**:
+```bash
+# CGOを有効化
+export CGO_ENABLED=1
+
+# macOS: Xcode Command Line Toolsをインストール
+xcode-select --install
+
+# Linux: gccをインストール
+apt-get install build-essential  # Debian/Ubuntu
+yum install gcc                   # RHEL/CentOS
+```
+
+#### エラー4: Python依存パッケージエラー
+
+```
+ModuleNotFoundError: No module named 'xxx'
+```
+
+**解決策**:
+```bash
+# 依存パッケージをインストール
+pip install -r requirements.txt
+
+# または個別にインストール
+pip install sqlite3  # 通常は標準ライブラリに含まれる
+```
+
+#### エラー5: Rate Limitエラー
+
+```
+Error: Rate limit exceeded (429 Too Many Requests)
+```
+
+**解決策**:
+```bash
+# API遅延を設定（秒単位）
+export API_DELAY=5
+
+# または collect-compliance.sh を編集してsleepを追加
+```
+
+### 実装の重要ポイント
+
+#### Taskfile.ymlの設計
+
+**workflow-awsタスクの仕組み**:
+- `deps: [build]` により、実行前に自動的にバイナリがビルドされる
+- データ収集とレポート生成が同一ディレクトリ（`data/${TIMESTAMP}/`）に出力
+- DBファイルの存在確認を行い、エラーハンドリングを実装
+
+**report-awsタスクの仕組み**:
+- `ls -t data/*/cis_aws.db | head -n 1` で最新のDBファイルを自動検索
+- レポートは新しいタイムスタンプで生成（既存ファイルを上書きしない）
+- DBが見つからない場合はエラーメッセージを表示
+
+詳細なコードは `Taskfile.yml` の385-482行目を参照してください。
+
+### 高度な使用例
+
+#### 複数の設定で並行レポート生成
+
+```bash
+# 並行実行（バックグラウンド）
+task report-aws-custom OUTPUT=data/report_high.md SEVERITY=high MODE=detail &
+task report-aws-custom OUTPUT=data/report_all.md SEVERITY=all MODE=full &
+wait
+echo "全てのレポート生成完了"
+```
+
+#### 特定のDBファイルからレポート生成
+
+```bash
+# 任意のDBファイルを指定
+python3 scripts/generate_compliance_report.py \
+  data/20251115_120000/cis_aws.db \
+  data/report_20251115.md \
+  --severity all \
+  --mode full
+```
+
+#### デバッグモードでの実行
+
+```bash
+# Bashデバッグモードで実行
+bash -x scripts/collect-compliance.sh aws --output data/test
+
+# Pythonデバッグモード
+python3 -u scripts/generate_compliance_report.py data/test/cis_aws.db test_report.md
 ```
 
 ## 開発時の必須タスク
