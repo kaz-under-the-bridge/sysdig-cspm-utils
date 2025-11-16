@@ -1,0 +1,97 @@
+# golangci-lint設定（緩め - PR段階での基本的なチェックのみ）
+run:
+  timeout: 5m
+  tests: true
+  modules-download-mode: readonly
+  go: '1.23'
+
+linters:
+  enable:
+    # 最小限の必須linter（エラーのみ）
+    - errcheck        # エラー処理の確認
+    - gosimple        # コードの簡略化提案
+    - govet           # go vetと同等
+    - ineffassign     # 無効な代入検出
+    - staticcheck     # 静的解析
+    - unused          # 未使用コード検出
+    - typecheck       # 型チェック
+
+    # 推奨linter（軽量）
+    - gofmt           # フォーマット確認
+    - goimports       # import確認
+    - misspell        # スペルミス検出
+    - revive          # 軽量なコードスタイルチェック
+
+  disable:
+    # 厳しすぎるlinterは無効化
+    - gocyclo         # 循環的複雑度（別タスクで実行）
+    - gocritic        # 厳しい批評
+    - gosec           # セキュリティ（別ジョブで実行）
+    - lll             # 行の長さ制限
+    - dupl            # 重複コード検出
+    - funlen          # 関数の長さ
+    - gocognit        # 認知的複雑度
+    - nestif          # ネストの深さ
+    - cyclop          # パッケージの循環的複雑度
+
+linters-settings:
+  errcheck:
+    # エラー無視を許可する関数（標準的なもののみ）
+    exclude-functions:
+      - (*database/sql.DB).Close
+      - (*database/sql.Rows).Close
+      - (io.Closer).Close
+
+  revive:
+    # reviveの基本ルールのみ有効化（厳しいルールは無効化）
+    rules:
+      - name: blank-imports
+      - name: context-as-argument
+      - name: dot-imports
+      - name: error-return
+      - name: error-strings
+      - name: error-naming
+      - name: exported
+        disabled: true  # 緩め設定：exportされた識別子のコメント要求を無効化
+      - name: increment-decrement
+      - name: var-naming
+      - name: package-comments
+        disabled: true  # 緩め設定：パッケージコメント要求を無効化
+      - name: range
+      - name: receiver-naming
+      - name: indent-error-flow
+      - name: superfluous-else
+
+  goimports:
+    local-prefixes: github.com/kaz-under-the-bridge/sysdig-cspm-utils
+
+  misspell:
+    locale: US
+    ignore-words:
+      - sysdig
+      - cspm
+
+issues:
+  # 既存コードの警告は一旦許容
+  new: false
+
+  # 最大表示数を制限
+  max-issues-per-linter: 50
+  max-same-issues: 3
+
+  # 除外パターン
+  exclude-rules:
+    # テストコードでは一部のルールを緩和
+    - path: _test\.go
+      linters:
+        - errcheck
+        - gosec
+        - dupl
+
+    # 自動生成コードは除外
+    - path: vendor/
+      linters:
+        - all
+
+  # デフォルトの除外ルールを使用
+  exclude-use-default: true
