@@ -10,7 +10,7 @@ func TestNewTableWriter(t *testing.T) {
 	tw := NewTableWriter(buf)
 
 	if tw == nil {
-		t.Error("NewTableWriter returned nil")
+		t.Fatal("NewTableWriter returned nil")
 	}
 	if tw.writer != buf {
 		t.Error("TableWriter writer not set correctly")

@@ -1,0 +1,73 @@
+# golangci-lint設定（緩め - PR段階での基本的なチェックのみ）
+run:
+  timeout: 5m
+  tests: false  # テストファイルをスキャンから除外
+  modules-download-mode: readonly
+  go: '1.23'
+
+linters:
+  enable:
+    # デフォルトリンター（errcheck, govet, ineffassign, staticcheck, unused）は自動有効
+
+    # 追加の推奨linter
+    - misspell        # スペルミス検出
+    - revive          # 軽量なコードスタイルチェック
+
+linters-settings:
+  errcheck:
+    # エラー無視を許可する関数（標準的なもののみ）
+    exclude-functions:
+      - (*database/sql.DB).Close
+      - (*database/sql.Rows).Close
+      - (io.Closer).Close
+
+  revive:
+    # reviveの基本ルールのみ有効化（厳しいルールは無効化）
+    rules:
+      - name: blank-imports
+      - name: context-as-argument
+      - name: dot-imports
+      - name: error-return
+      - name: error-strings
+      - name: error-naming
+      - name: exported
+        disabled: true  # 緩め設定：exportされた識別子のコメント要求を無効化
+      - name: increment-decrement
+      - name: var-naming
+      - name: package-comments
+        disabled: true  # 緩め設定：パッケージコメント要求を無効化
+      - name: range
+      - name: receiver-naming
+      - name: indent-error-flow
+      - name: superfluous-else
+
+  misspell:
+    locale: US
+    ignore-words:
+      - sysdig
+      - cspm
+
+issues:
+  # 既存コードの警告は一旦許容
+  new: false
+
+  # 最大表示数を制限
+  max-issues-per-linter: 50
+  max-same-issues: 3
+
+  # 除外パターン
+  exclude-rules:
+    # テストコードではerrcheckを緩和（defer呼び出しのエラーチェックは不要）
+    - path: '(_test\.go|testutil/)'
+      linters:
+        - errcheck
+        - gosec
+        - dupl
+
+    # 自動生成コードは除外
+    - path: vendor/
+      linters:
+        - all
+
+  # デフォルトの除外ルールを使用
+  exclude-use-default: true

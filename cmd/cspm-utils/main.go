@@ -262,7 +262,7 @@ func collectResources(cspmClient *client.CSPMClient, dbPath, policyType, platfor
 	if err != nil {
 		return fmt.Errorf("failed to initialize database: %w", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	// Build filter (failed only)
 	filter := buildFilter(policyType, platform, zoneName, false)
@@ -288,7 +288,7 @@ func collectRiskAcceptances(cspmClient *client.CSPMClient, dbPath string) error 
 	if err != nil {
 		return fmt.Errorf("failed to initialize database: %w", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	// Fetch all risk acceptances from API
 	fmt.Println("Fetching risk acceptances from API...")
@@ -314,7 +314,7 @@ func listRiskAcceptances(dbPath, controlID string) error {
 	if err != nil {
 		return fmt.Errorf("failed to initialize database: %w", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	// Fetch risk acceptances from database
 	acceptances, err := db.GetRiskAcceptances(controlID)
@@ -380,7 +380,7 @@ func deleteRiskAcceptance(cspmClient *client.CSPMClient, dbPath, acceptanceID st
 	if err != nil {
 		return fmt.Errorf("failed to initialize database: %w", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	if err := db.DeleteRiskAcceptanceFromDB(acceptanceID); err != nil {
 		return fmt.Errorf("failed to delete from database: %w", err)

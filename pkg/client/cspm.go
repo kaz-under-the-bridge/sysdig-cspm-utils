@@ -54,7 +54,7 @@ func (c *CSPMClient) GetComplianceRequirementsPaginated(filter string, pageNumbe
 	if err != nil {
 		return nil, fmt.Errorf("failed to get compliance requirements: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("API request failed with status %d", resp.StatusCode)
@@ -205,7 +205,7 @@ func (c *CSPMClient) GetComplianceRequirementsWithControls(filter string, pageNu
 	if err != nil {
 		return nil, fmt.Errorf("failed to get compliance requirements: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("API request failed with status %d", resp.StatusCode)
@@ -350,7 +350,7 @@ func (c *CSPMClient) GetCloudResources(endpoint string, pageNumber, pageSize int
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cloud resources: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != 200 {
 		var errResp map[string]interface{}
@@ -528,7 +528,7 @@ func (c *CSPMClient) searchRiskAcceptances(endpoint string, request models.RiskA
 	if err != nil {
 		return nil, fmt.Errorf("failed to search risk acceptances: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("API request failed with status %d", resp.StatusCode)
@@ -554,7 +554,7 @@ func (c *CSPMClient) DeleteRiskAcceptance(id string) error {
 	if err != nil {
 		return fmt.Errorf("failed to delete risk acceptance: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("API request failed with status %d", resp.StatusCode)

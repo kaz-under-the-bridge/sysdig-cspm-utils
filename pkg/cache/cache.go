@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/kaz-under-the-bridge/sysdig-cspm-utils/pkg/sysdig"
+	// SQLite3ドライバーを読み込む
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -86,7 +87,7 @@ func NewSQLiteCache(filepath string) (*SQLiteCache, error) {
 
 	// Create tables
 	if err := cache.createTables(); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("failed to create tables: %w", err)
 	}
 
@@ -211,7 +212,7 @@ func (c *SQLiteCache) Save(vulnerabilities []sysdig.Vulnerability) error {
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	// Clear existing data
 	if _, err := tx.Exec("DELETE FROM vulnerabilities"); err != nil {
@@ -267,7 +268,7 @@ func (c *SQLiteCache) Load() ([]sysdig.Vulnerability, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to query vulnerabilities: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	vulnerabilities := []sysdig.Vulnerability{}
 	vulnMap := make(map[string]*sysdig.Vulnerability)
@@ -379,7 +380,7 @@ func (c *SQLiteCache) SaveScanResults(scanType string, results []sysdig.ScanResu
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	// Prepare statements
 	insertScanResult, err := tx.Prepare(`
@@ -391,7 +392,7 @@ func (c *SQLiteCache) SaveScanResults(scanType string, results []sysdig.ScanResu
 	if err != nil {
 		return fmt.Errorf("failed to prepare scan result statement: %w", err)
 	}
-	defer insertScanResult.Close()
+	defer func() { _ = insertScanResult.Close() }()
 
 	insertVuln, err := tx.Prepare(`
 		INSERT OR REPLACE INTO scan_vulnerabilities
@@ -400,7 +401,7 @@ func (c *SQLiteCache) SaveScanResults(scanType string, results []sysdig.ScanResu
 	if err != nil {
 		return fmt.Errorf("failed to prepare vulnerability statement: %w", err)
 	}
-	defer insertVuln.Close()
+	defer func() { _ = insertVuln.Close() }()
 
 	// Process each scan result
 	for _, result := range results {
@@ -495,7 +496,7 @@ func (c *SQLiteCache) LoadScanResults(scanType string, days int) ([]ScanResultWi
 	if err != nil {
 		return nil, fmt.Errorf("failed to query scan results: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	results := []ScanResultWithDetails{}
 
@@ -611,7 +612,7 @@ func (c *SQLiteCache) LoadScanResults(scanType string, days int) ([]ScanResultWi
 				&cvssVersion,
 			)
 			if err != nil {
-				vulnRows.Close()
+				_ = vulnRows.Close()
 				return nil, fmt.Errorf("failed to scan vulnerability row: %w", err)
 			}
 
@@ -630,7 +631,7 @@ func (c *SQLiteCache) LoadScanResults(scanType string, days int) ([]ScanResultWi
 
 			vulnerabilities = append(vulnerabilities, vuln)
 		}
-		vulnRows.Close()
+		_ = vulnRows.Close()
 
 		r.Vulnerabilities = vulnerabilities
 		results = append(results, r)

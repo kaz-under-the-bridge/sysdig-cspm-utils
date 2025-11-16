@@ -197,7 +197,7 @@ func (c *Client) ListVulnerabilitiesByPackage(packageName string) ([]Vulnerabili
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
@@ -219,7 +219,7 @@ func (c *Client) ListVulnerabilitiesBySeverity(severity string) ([]Vulnerability
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
@@ -710,7 +710,7 @@ func (c *Client) fetchPipelineResultsWithPagination(cursor string, limit int, fr
 	if err != nil {
 		return nil, "", err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
@@ -741,7 +741,7 @@ func (c *Client) fetchRuntimeResultsWithPagination(cursor string, limit int) ([]
 	if err != nil {
 		return nil, "", err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
@@ -792,7 +792,7 @@ func (c *Client) fetchRuntimeResultsByAssetType(assetType string, limit int) ([]
 		if err != nil {
 			return nil, err
 		}
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 
 		if resp.StatusCode != http.StatusOK {
 			body, _ := io.ReadAll(resp.Body)
@@ -825,7 +825,7 @@ func (c *Client) GetFullScanResult(resultID string) (*FullScanResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode == http.StatusNotFound {
 		return nil, fmt.Errorf("scan result not found: %s", resultID)
@@ -936,7 +936,7 @@ func (c *Client) ListAcceptedRisks() ([]AcceptedRisk, error) {
 		if err != nil {
 			return nil, err
 		}
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 
 		if resp.StatusCode != http.StatusOK {
 			body, _ := io.ReadAll(resp.Body)
@@ -977,7 +977,7 @@ func (c *Client) CreateAcceptedRisk(entityValue string, expirationDays int, desc
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
 		respBody, _ := io.ReadAll(resp.Body)

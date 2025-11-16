@@ -2,6 +2,7 @@
 package testutil
 
 import (
+	// embedディレクティブを使用するために必要
 	_ "embed"
 	"fmt"
 	"os"
